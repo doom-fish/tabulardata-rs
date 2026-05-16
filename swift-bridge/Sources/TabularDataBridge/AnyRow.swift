@@ -162,3 +162,38 @@ public func td_dataframe_replace_row_json(
         return TDR_FRAMEWORK_ERROR
     }
 }
+
+@_cdecl("td_dataframe_append_empty_row")
+public func td_dataframe_append_empty_row(
+    _ framePtr: UnsafeMutableRawPointer?,
+    _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
+) -> Int32 {
+    guard let box = td_box(framePtr) else {
+        td_write_error(errorOut, "data frame must not be null")
+        return TDR_INVALID_ARGUMENT
+    }
+
+    box.frame.appendEmptyRow()
+    _ = errorOut
+    return TDR_OK
+}
+
+@_cdecl("td_dataframe_remove_row")
+public func td_dataframe_remove_row(
+    _ framePtr: UnsafeMutableRawPointer?,
+    _ index: Int,
+    _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
+) -> Int32 {
+    guard let box = td_box(framePtr) else {
+        td_write_error(errorOut, "data frame must not be null")
+        return TDR_INVALID_ARGUMENT
+    }
+
+    guard box.frame.rows.indices.contains(index) else {
+        td_write_error(errorOut, "row index out of bounds")
+        return TDR_INVALID_ARGUMENT
+    }
+
+    box.frame.removeRow(at: index)
+    return TDR_OK
+}

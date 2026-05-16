@@ -27,11 +27,14 @@ pub mod dataframe;
 pub mod error;
 pub mod ffi;
 pub mod filter;
+pub mod formatting;
 pub mod groupby;
 pub mod join;
+pub mod json;
 mod private;
 pub mod slicing;
 pub mod sort;
+pub mod split;
 pub mod summary;
 
 pub use any_column::{AnyColumn, AnyValue};
@@ -44,8 +47,10 @@ pub use csv_writer::DateWriteStrategy;
 pub use dataframe::{CSVReadingOptions, CSVWritingOptions, DataFrame, JoinKind};
 pub use error::TabularDataError;
 pub use filter::{ComparisonOp, Filter};
+pub use formatting::FormattingOptions;
 pub use groupby::{GroupBy, GroupValueType, TimeUnit};
 pub use join::JoinColumns;
+pub use json::{JSONReadRequest, JSONReadingOptions, JSONType, JSONWritingOptions};
 pub use sort::{SortKey, SortOrder};
 pub use summary::{CategoricalSummary, ColumnSummary, NumericSummary};
 
@@ -61,8 +66,10 @@ pub mod prelude {
     pub use crate::dataframe::{CSVReadingOptions, CSVWritingOptions, DataFrame, JoinKind};
     pub use crate::error::TabularDataError;
     pub use crate::filter::{ComparisonOp, Filter};
+    pub use crate::formatting::FormattingOptions;
     pub use crate::groupby::{GroupBy, GroupValueType, TimeUnit};
     pub use crate::join::JoinColumns;
+    pub use crate::json::{JSONReadRequest, JSONReadingOptions, JSONType, JSONWritingOptions};
     pub use crate::sort::{SortKey, SortOrder};
     pub use crate::summary::{CategoricalSummary, ColumnSummary, NumericSummary};
 }

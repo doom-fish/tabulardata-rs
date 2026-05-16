@@ -1,12 +1,14 @@
 # tabulardata-rs coverage audit (vs MacOSX26.2.sdk)
 
 SDK_PUBLIC_SYMBOLS: 641
-VERIFIED: 80
-GAPS: 559
+VERIFIED: 133
+GAPS: 506
 EXEMPT: 2
-COVERAGE_PCT: 12.52%
+COVERAGE_PCT: 20.81%
 
 Counts include public `init` and `subscript` declarations because TabularData exposes major functionality through constructors and collection accessors in `TabularData.swiftinterface`.
+
+v0.2.1 focus: JSON IO, split/formatting, and DataFrame metadata/alias/row-mutation helpers are now verified. Remaining gaps are still dominated by Swift protocol-only typed column hierarchy, `ColumnID` overloads, `GroupSummaries`/summary value types, dedicated JSON/CSV error enums, and `ShapedData`.
 
 ## 🟢 VERIFIED
 | Symbol | Kind | Header | Wrapped by |
@@ -91,6 +93,59 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `AnyColumn.var missingCount: Swift.Int` | var | `TabularData.swiftinterface:L2501` | `AnyColumn.missing_count` |
 | `AnyColumn.subscript(range: Swift.Range<Swift.Int>) -> TabularData.AnyColumnSlice` | subscript | `TabularData.swiftinterface:L2532` | `DataFrame::column_slice` |
 | `AnyColumn.subscript<C>(mask: C) -> TabularData.AnyColumnSlice where C : Swift.Collection, C.Element == Swift.Bool` | subscript | `TabularData.swiftinterface:L2536` | `DataFrame::column_mask` |
+| `DataFrame.func indexOfColumn(_ columnName: Swift.String) -> Swift.Int?` | func | `TabularData.swiftinterface:L58` | DataFrame::index_of_column |
+| `DataFrame.func containsColumn<T>(_ name: Swift.String, _ type: T.Type) -> Swift.Bool` | func | `TabularData.swiftinterface:L68` | DataFrame::contains_column_of_type |
+| `DataFrame.func containsColumn(_ name: Swift.String) -> Swift.Bool` | func | `TabularData.swiftinterface:L75` | DataFrame::contains_column |
+| `DataFrame.func columnNames(forAlias alias: Swift.String) -> [Swift.String]` | func | `TabularData.swiftinterface:L78` | DataFrame::column_names_for_alias |
+| `DataFrame.mutating func addAlias(_ alias: Swift.String, forColumn columnName: Swift.String)` | func | `TabularData.swiftinterface:L79` | DataFrame::add_alias |
+| `DataFrame.mutating func removeAlias(_ alias: Swift.String)` | func | `TabularData.swiftinterface:L80` | DataFrame::remove_alias |
+| `DataFrame.mutating func append<T>(column: TabularData.Column<T>)` | func | `TabularData.swiftinterface:L81` | DataFrame::append_column |
+| `DataFrame.mutating func append(row: TabularData.DataFrame.Row)` | func | `TabularData.swiftinterface:L101` | DataFrame::append_row |
+| `DataFrame.mutating func appendEmptyRow()` | func | `TabularData.swiftinterface:L108` | DataFrame::append_empty_row |
+| `DataFrame.mutating func insert(row: TabularData.DataFrame.Row, at index: Swift.Int)` | func | `TabularData.swiftinterface:L109` | DataFrame::insert_row |
+| `DataFrame.mutating func removeRow(at index: Swift.Int)` | func | `TabularData.swiftinterface:L110` | DataFrame::remove_row |
+| `DataFrameProtocol.func randomSplit(by proportion: Swift.Double, seed: Swift.Int? = nil) -> (TabularData.DataFrame.Slice, TabularData.DataFrame.Slice)` | func | `TabularData.swiftinterface:L247` | DataFrame::random_split |
+| `DataFrameProtocol.func stratifiedSplit(on columnName: Swift.String, by proportion: Swift.Double, randomSeed: Swift.Int? = nil) -> (TabularData.DataFrame, TabularData.DataFrame)` | func | `TabularData.swiftinterface:L251` | DataFrame::stratified_split |
+| `DataFrameProtocol.func stratifiedSplit(on columnNames: Swift.String..., by proportion: Swift.Double, randomSeed: Swift.Int? = nil) -> (TabularData.DataFrame, TabularData.DataFrame)` | func | `TabularData.swiftinterface:L254` | DataFrame::stratified_split |
+| `DiscontiguousColumnSlice.func summary() -> TabularData.CategoricalSummary<WrappedElement>` | func | `TabularData.swiftinterface:L272` | ColumnSlice::summary |
+| `ColumnSlice.func summary() -> TabularData.CategoricalSummary<WrappedElement>` | func | `TabularData.swiftinterface:L276` | ColumnSlice::summary |
+| `AnyColumnSlice.func summary() -> TabularData.AnyCategoricalSummary` | func | `TabularData.swiftinterface:L284` | ColumnSlice::summary |
+| `JSONType` | enum | `TabularData.swiftinterface:L307` | tabulardata::JSONType |
+| `JSONReadingOptions` | struct | `TabularData.swiftinterface:L379` | tabulardata::JSONReadingOptions |
+| `JSONReadingOptions.var dateParsers: [(Swift.String) -> Foundation.Date?]` | var | `TabularData.swiftinterface:L380` | JSONReadingOptions::with_date_parse_strategy |
+| `JSONReadingOptions.init()` | init | `TabularData.swiftinterface:L381` | JSONReadingOptions::new |
+| `JSONReadingOptions.mutating func addDateParseStrategy<T>(_ strategy: T) where T : Foundation.ParseStrategy, T.ParseInput == Swift.String, T.ParseOutput == Foundation.Date` | func | `TabularData.swiftinterface:L382` | JSONReadingOptions::with_date_parse_strategy |
+| `JSONWritingOptions` | struct | `TabularData.swiftinterface:L385` | tabulardata::JSONWritingOptions |
+| `JSONWritingOptions.var sortKeys: Swift.Bool` | var | `TabularData.swiftinterface:L386` | JSONWritingOptions::with_sort_keys |
+| `JSONWritingOptions.var prettyPrint: Swift.Bool` | var | `TabularData.swiftinterface:L387` | JSONWritingOptions::with_pretty_print |
+| `JSONWritingOptions.var dateFormatter: (Foundation.Date) -> Swift.String` | var | `TabularData.swiftinterface:L388` | JSONWritingOptions::with_date_strategy |
+| `JSONWritingOptions.init()` | init | `TabularData.swiftinterface:L389` | JSONWritingOptions::new |
+| `Column.var name: Swift.String` | var | `TabularData.swiftinterface:L476` | Column::name |
+| `Column.var count: Swift.Int` | var | `TabularData.swiftinterface:L477` | Column::len |
+| `Column.var missingCount: Swift.Int` | var | `TabularData.swiftinterface:L481` | Column::missing_count |
+| `Column.var wrappedElementType: any Any.Type` | var | `TabularData.swiftinterface:L484` | Column::type_name |
+| `DataFrameProtocol.func sorted(on columnName: Swift.String, order: TabularData.Order = .ascending) -> TabularData.DataFrame` | func | `TabularData.swiftinterface:L1312` | DataFrame::sorted_by |
+| `DataFrameProtocol.func sorted<T>(on columnName: Swift.String, _ type: T.Type, order: TabularData.Order = .ascending) -> TabularData.DataFrame where T : Swift.Comparable` | func | `TabularData.swiftinterface:L1313` | DataFrame::sorted_by |
+| `DataFrame.mutating func sort(on columnName: Swift.String, order: TabularData.Order = .ascending)` | func | `TabularData.swiftinterface:L1322` | DataFrame::sort_by |
+| `DataFrame.mutating func sort<T>(on columnName: Swift.String, _ type: T.Type, order: TabularData.Order = .ascending) where T : Swift.Comparable` | func | `TabularData.swiftinterface:L1323` | DataFrame::sort_by |
+| `DataFrame.var description: Swift.String` | var | `TabularData.swiftinterface:L1376` | DataFrame::description |
+| `DataFrameProtocol.func description(options: TabularData.FormattingOptions) -> Swift.String` | func | `TabularData.swiftinterface:L1413` | DataFrame::format |
+| `DataFrame.init(contentsOfJSONFile url: Foundation.URL, columns: [Swift.String]? = nil, types: [Swift.String : TabularData.JSONType] = [:], options: TabularData.JSONReadingOptions = .init()) throws` | init | `TabularData.swiftinterface:L1662` | DataFrame::{from_json,read_json_with} |
+| `DataFrame.init(jsonData data: Foundation.Data, columns: [Swift.String]? = nil, types: [Swift.String : TabularData.JSONType] = [:], options: TabularData.JSONReadingOptions = .init()) throws` | init | `TabularData.swiftinterface:L1665` | DataFrame::{from_json_data,read_json_data_with} |
+| `DataFrameProtocol.func writeJSON(to url: Foundation.URL, options: TabularData.JSONWritingOptions = .init()) throws` | func | `TabularData.swiftinterface:L2320` | DataFrame::write_json |
+| `DataFrameProtocol.func jsonRepresentation(options: TabularData.JSONWritingOptions = .init()) throws -> Foundation.Data` | func | `TabularData.swiftinterface:L2321` | DataFrame::{json_bytes,json_string} |
+| `AnyColumn.func distinct() -> TabularData.AnyColumnSlice` | func | `TabularData.swiftinterface:L2566` | AnyColumn::distinct |
+| `FormattingOptions` | struct | `TabularData.swiftinterface:L2601` | tabulardata::FormattingOptions |
+| `FormattingOptions.var maximumLineWidth: Swift.Int` | var | `TabularData.swiftinterface:L2602` | FormattingOptions::with_maximum_line_width |
+| `FormattingOptions.var maximumCellWidth: Swift.Int` | var | `TabularData.swiftinterface:L2603` | FormattingOptions::with_maximum_cell_width |
+| `FormattingOptions.var maximumRowCount: Swift.Int` | var | `TabularData.swiftinterface:L2604` | FormattingOptions::with_maximum_row_count |
+| `FormattingOptions.var includesColumnTypes: Swift.Bool` | var | `TabularData.swiftinterface:L2605` | FormattingOptions::with_includes_column_types |
+| `FormattingOptions.var includesRowIndices: Swift.Bool` | var | `TabularData.swiftinterface:L2607` | FormattingOptions::with_includes_row_indices |
+| `FormattingOptions.var includesRowAndColumnCounts: Swift.Bool` | var | `TabularData.swiftinterface:L2609` | FormattingOptions::with_includes_row_and_column_counts |
+| `FormattingOptions.var locale: Foundation.Locale` | var | `TabularData.swiftinterface:L2626` | FormattingOptions::with_locale |
+| `FormattingOptions.init()` | init | `TabularData.swiftinterface:L2630` | FormattingOptions::new |
+| `FormattingOptions.init(locale: Foundation.Locale)` | init | `TabularData.swiftinterface:L2632` | FormattingOptions::{new,with_locale} |
+| `FormattingOptions.init(maximumLineWidth: Swift.Int, maximumCellWidth: Swift.Int = 50, maximumRowCount: Swift.Int = 20, includesColumnTypes: Swift.Bool = true)` | init | `TabularData.swiftinterface:L2633` | FormattingOptions::{new,with_maximum_line_width,...} |
 
 ## 🔴 GAPS
 | Symbol | Kind | Header | Notes |
@@ -108,14 +163,7 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `DataFrame.mutating func replaceColumn<T>(_ id: TabularData.ColumnID<T>, with newColumn: TabularData.AnyColumn)` | func | `TabularData.swiftinterface:L36` | Additional DataFrame mutation/reshape APIs are not wrapped. |
 | `DataFrame.mutating func replaceColumn<T>(_ name: Swift.String, with newColumn: TabularData.Column<T>)` | func | `TabularData.swiftinterface:L38` | Additional DataFrame mutation/reshape APIs are not wrapped. |
 | `DataFrame.mutating func replaceColumn<T, U>(_ id: TabularData.ColumnID<T>, with newColumn: TabularData.Column<U>)` | func | `TabularData.swiftinterface:L40` | Additional DataFrame mutation/reshape APIs are not wrapped. |
-| `DataFrame.func indexOfColumn(_ columnName: Swift.String) -> Swift.Int?` | func | `TabularData.swiftinterface:L58` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.func containsColumn<T>(_ id: TabularData.ColumnID<T>) -> Swift.Bool` | func | `TabularData.swiftinterface:L61` | ColumnID-based typed overloads are not wrapped; the crate uses string column names. |
-| `DataFrame.func containsColumn<T>(_ name: Swift.String, _ type: T.Type) -> Swift.Bool` | func | `TabularData.swiftinterface:L68` | No public Rust wrapper for this SDK symbol. |
-| `DataFrame.func containsColumn(_ name: Swift.String) -> Swift.Bool` | func | `TabularData.swiftinterface:L75` | No public Rust wrapper for this SDK symbol. |
-| `DataFrame.func columnNames(forAlias alias: Swift.String) -> [Swift.String]` | func | `TabularData.swiftinterface:L78` | No public Rust wrapper for this SDK symbol. |
-| `DataFrame.mutating func addAlias(_ alias: Swift.String, forColumn columnName: Swift.String)` | func | `TabularData.swiftinterface:L79` | Additional DataFrame mutation/reshape APIs are not wrapped. |
-| `DataFrame.mutating func removeAlias(_ alias: Swift.String)` | func | `TabularData.swiftinterface:L80` | Additional DataFrame mutation/reshape APIs are not wrapped. |
-| `DataFrame.mutating func append<T>(column: TabularData.Column<T>)` | func | `TabularData.swiftinterface:L81` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.mutating func insert<T>(column: TabularData.Column<T>, at index: Swift.Int)` | func | `TabularData.swiftinterface:L83` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.mutating func insert(column: TabularData.AnyColumn, at index: Swift.Int)` | func | `TabularData.swiftinterface:L84` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.mutating func removeColumn<T>(_ id: TabularData.ColumnID<T>) -> TabularData.Column<T>` | func | `TabularData.swiftinterface:L86` | Additional DataFrame mutation/reshape APIs are not wrapped. |
@@ -124,11 +172,7 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `DataFrame.mutating func transformColumn<From, To>(_ id: TabularData.ColumnID<From>, _ transform: (From) throws -> To?) rethrows` | func | `TabularData.swiftinterface:L93` | Additional DataFrame mutation/reshape APIs are not wrapped. |
 | `DataFrame.mutating func transformColumn<From, To>(_ name: Swift.String, _ transform: (From?) throws -> To?) rethrows` | func | `TabularData.swiftinterface:L96` | Additional DataFrame mutation/reshape APIs are not wrapped. |
 | `DataFrame.mutating func transformColumn<From, To>(_ name: Swift.String, _ transform: (From) throws -> To?) rethrows` | func | `TabularData.swiftinterface:L99` | Additional DataFrame mutation/reshape APIs are not wrapped. |
-| `DataFrame.mutating func append(row: TabularData.DataFrame.Row)` | func | `TabularData.swiftinterface:L101` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.mutating func append(row: Any?...)` | func | `TabularData.swiftinterface:L103` | No public Rust wrapper for this SDK symbol. |
-| `DataFrame.mutating func appendEmptyRow()` | func | `TabularData.swiftinterface:L108` | Additional DataFrame mutation/reshape APIs are not wrapped. |
-| `DataFrame.mutating func insert(row: TabularData.DataFrame.Row, at index: Swift.Int)` | func | `TabularData.swiftinterface:L109` | No public Rust wrapper for this SDK symbol. |
-| `DataFrame.mutating func removeRow(at index: Swift.Int)` | func | `TabularData.swiftinterface:L110` | Additional DataFrame mutation/reshape APIs are not wrapped. |
 | `DataFrame.mutating func append(rowsOf other: TabularData.DataFrame)` | func | `TabularData.swiftinterface:L113` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.mutating func append(_ other: TabularData.DataFrame)` | func | `TabularData.swiftinterface:L114` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.mutating func append(_ other: TabularData.DataFrame.Slice)` | func | `TabularData.swiftinterface:L115` | No public Rust wrapper for this SDK symbol. |
@@ -152,30 +196,14 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `AnyColumnPrototype` | protocol | `TabularData.swiftinterface:L240` | The Swift protocol hierarchy is not modeled directly in Rust. |
 | `AnyColumnPrototype.var name: Swift.String` | var | `TabularData.swiftinterface:L241` | The Swift protocol hierarchy is not modeled directly in Rust. |
 | `AnyColumnPrototype.func makeColumn(capacity: Swift.Int) -> TabularData.AnyColumn` | func | `TabularData.swiftinterface:L242` | The Swift protocol hierarchy is not modeled directly in Rust. |
-| `DataFrameProtocol.func randomSplit(by proportion: Swift.Double, seed: Swift.Int? = nil) -> (TabularData.DataFrame.Slice, TabularData.DataFrame.Slice)` | func | `TabularData.swiftinterface:L247` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `DataFrameProtocol.func randomSplit<G>(by proportion: Swift.Double, using generator: inout G) -> (TabularData.DataFrame.Slice, TabularData.DataFrame.Slice) where G : Swift.RandomNumberGenerator` | func | `TabularData.swiftinterface:L249` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
-| `DataFrameProtocol.func stratifiedSplit(on columnName: Swift.String, by proportion: Swift.Double, randomSeed: Swift.Int? = nil) -> (TabularData.DataFrame, TabularData.DataFrame)` | func | `TabularData.swiftinterface:L251` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
-| `DataFrameProtocol.func stratifiedSplit(on columnNames: Swift.String..., by proportion: Swift.Double, randomSeed: Swift.Int? = nil) -> (TabularData.DataFrame, TabularData.DataFrame)` | func | `TabularData.swiftinterface:L254` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `DataFrameProtocol.func stratifiedSplit<T>(on columnID: TabularData.ColumnID<T>, by proportion: Swift.Double, randomSeed: Swift.Int? = nil) -> (TabularData.DataFrame, TabularData.DataFrame) where T : Swift.Hashable` | func | `TabularData.swiftinterface:L257` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `DataFrameProtocol.func stratifiedSplit<T0, T1>(on columnID0: TabularData.ColumnID<T0>, _ columnID1: TabularData.ColumnID<T1>, by proportion: Swift.Double, randomSeed: Swift.Int? = nil) -> (TabularData.DataFrame, TabularData.DataFrame) where T0 : Swift.Hashable, T1 : Swift.Hashable` | func | `TabularData.swiftinterface:L260` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `DataFrameProtocol.func stratifiedSplit<T0, T1, T2>(on columnID0: TabularData.ColumnID<T0>, _ columnID1: TabularData.ColumnID<T1>, _ columnID2: TabularData.ColumnID<T2>, by proportion: Swift.Double, randomSeed: Swift.Int? = nil) -> (TabularData.DataFrame, TabularData.DataFrame) where T0 : Swift.Hashable, T1 : Swift.Hashable, T2 : Swift.Hashable` | func | `TabularData.swiftinterface:L263` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `Column.func summary() -> TabularData.CategoricalSummary<WrappedElement>` | func | `TabularData.swiftinterface:L268` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `DiscontiguousColumnSlice.func summary() -> TabularData.CategoricalSummary<WrappedElement>` | func | `TabularData.swiftinterface:L272` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `ColumnSlice.func summary() -> TabularData.CategoricalSummary<WrappedElement>` | func | `TabularData.swiftinterface:L276` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `FilledColumn.func summary() -> TabularData.CategoricalSummary<TabularData.FilledColumn<Base>.WrappedElement>` | func | `TabularData.swiftinterface:L280` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `AnyColumnSlice.func summary() -> TabularData.AnyCategoricalSummary` | func | `TabularData.swiftinterface:L284` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `JSONType` | enum | `TabularData.swiftinterface:L307` | JSON IO and JSON-specific errors are not wrapped. |
 | `JSONType.func hash(into hasher: inout Swift.Hasher)` | func | `TabularData.swiftinterface:L316` | JSON IO and JSON-specific errors are not wrapped. |
 | `JSONType.var hashValue: Swift.Int` | var | `TabularData.swiftinterface:L317` | JSON IO and JSON-specific errors are not wrapped. |
-| `JSONReadingOptions` | struct | `TabularData.swiftinterface:L379` | JSON IO and JSON-specific errors are not wrapped. |
-| `JSONReadingOptions.var dateParsers: [(Swift.String) -> Foundation.Date?]` | var | `TabularData.swiftinterface:L380` | JSON IO and JSON-specific errors are not wrapped. |
-| `JSONReadingOptions.init()` | init | `TabularData.swiftinterface:L381` | JSON IO and JSON-specific errors are not wrapped. |
-| `JSONReadingOptions.mutating func addDateParseStrategy<T>(_ strategy: T) where T : Foundation.ParseStrategy, T.ParseInput == Swift.String, T.ParseOutput == Foundation.Date` | func | `TabularData.swiftinterface:L382` | JSON IO and JSON-specific errors are not wrapped. |
-| `JSONWritingOptions` | struct | `TabularData.swiftinterface:L385` | JSON IO and JSON-specific errors are not wrapped. |
-| `JSONWritingOptions.var sortKeys: Swift.Bool` | var | `TabularData.swiftinterface:L386` | JSON IO and JSON-specific errors are not wrapped. |
-| `JSONWritingOptions.var prettyPrint: Swift.Bool` | var | `TabularData.swiftinterface:L387` | JSON IO and JSON-specific errors are not wrapped. |
-| `JSONWritingOptions.var dateFormatter: (Foundation.Date) -> Swift.String` | var | `TabularData.swiftinterface:L388` | JSON IO and JSON-specific errors are not wrapped. |
-| `JSONWritingOptions.init()` | init | `TabularData.swiftinterface:L389` | JSON IO and JSON-specific errors are not wrapped. |
 | `SummaryColumnIDs` | enum | `TabularData.swiftinterface:L392` | ColumnID-based typed overloads are not wrapped; the crate uses string column names. |
 | `DataFrame.Slice.var base: TabularData.DataFrame` | var | `TabularData.swiftinterface:L414` | Rust uses AnyRow/DataFrame copies instead of direct nested collection bindings. |
 | `DataFrame.Slice.var rows: TabularData.DataFrame.Rows` | var | `TabularData.swiftinterface:L417` | Rust uses AnyRow/DataFrame copies instead of direct nested collection bindings. |
@@ -200,10 +228,6 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `DataFrame.Slice.func hash(into hasher: inout Swift.Hasher)` | func | `TabularData.swiftinterface:L468` | Rust uses AnyRow/DataFrame copies instead of direct nested collection bindings. |
 | `DataFrame.Slice.var hashValue: Swift.Int` | var | `TabularData.swiftinterface:L469` | Rust uses AnyRow/DataFrame copies instead of direct nested collection bindings. |
 | `Column.typealias Element = WrappedElement?` | typealias | `TabularData.swiftinterface:L475` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `Column.var name: Swift.String` | var | `TabularData.swiftinterface:L476` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `Column.var count: Swift.Int` | var | `TabularData.swiftinterface:L477` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `Column.var missingCount: Swift.Int` | var | `TabularData.swiftinterface:L481` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `Column.var wrappedElementType: any Any.Type` | var | `TabularData.swiftinterface:L484` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `Column.var prototype: any TabularData.AnyColumnPrototype` | var | `TabularData.swiftinterface:L487` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `Column.init(name: Swift.String, capacity: Swift.Int)` | init | `TabularData.swiftinterface:L490` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `Column.init(_ id: TabularData.ColumnID<WrappedElement>, capacity: Swift.Int)` | init | `TabularData.swiftinterface:L491` | ColumnID-based typed overloads are not wrapped; the crate uses string column names. |
@@ -315,15 +339,11 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `GroupSummaries.subscript(keys: Any?...) -> TabularData.DataFrame?` | subscript | `TabularData.swiftinterface:L1305` | Summary value types are not bridged directly; Rust re-materializes its own summary structs. |
 | `GroupSummaries.var description: Swift.String` | var | `TabularData.swiftinterface:L1307` | Summary value types are not bridged directly; Rust re-materializes its own summary structs. |
 | `GroupSummaries.func description(options: TabularData.FormattingOptions) -> Swift.String` | func | `TabularData.swiftinterface:L1308` | Formatting and display helpers are not wrapped. |
-| `DataFrameProtocol.func sorted(on columnName: Swift.String, order: TabularData.Order = .ascending) -> TabularData.DataFrame` | func | `TabularData.swiftinterface:L1312` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
-| `DataFrameProtocol.func sorted<T>(on columnName: Swift.String, _ type: T.Type, order: TabularData.Order = .ascending) -> TabularData.DataFrame where T : Swift.Comparable` | func | `TabularData.swiftinterface:L1313` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `DataFrameProtocol.func sorted<T>(on columnID: TabularData.ColumnID<T>, order: TabularData.Order = .ascending) -> TabularData.DataFrame where T : Swift.Comparable` | func | `TabularData.swiftinterface:L1314` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `DataFrameProtocol.func sorted<T0, T1>(on columnID0: TabularData.ColumnID<T0>, _ columnID1: TabularData.ColumnID<T1>, order: TabularData.Order = .ascending) -> TabularData.DataFrame where T0 : Swift.Comparable, T1 : Swift.Comparable` | func | `TabularData.swiftinterface:L1315` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `DataFrameProtocol.func sorted<T0, T1, T2>(on columnID0: TabularData.ColumnID<T0>, _ columnID1: TabularData.ColumnID<T1>, _ columnID2: TabularData.ColumnID<T2>, order: TabularData.Order = .ascending) -> TabularData.DataFrame where T0 : Swift.Comparable, T1 : Swift.Comparable, T2 : Swift.Comparable` | func | `TabularData.swiftinterface:L1316` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `DataFrameProtocol.func sorted<T>(on columnName: Swift.String, _ type: T.Type, by areInIncreasingOrder: (T, T) throws -> Swift.Bool) rethrows -> TabularData.DataFrame` | func | `TabularData.swiftinterface:L1317` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
 | `DataFrameProtocol.func sorted<T>(on columnID: TabularData.ColumnID<T>, by areInIncreasingOrder: (T, T) throws -> Swift.Bool) rethrows -> TabularData.DataFrame` | func | `TabularData.swiftinterface:L1318` | The crate exposes concrete DataFrame APIs instead of the full protocol abstraction. |
-| `DataFrame.mutating func sort(on columnName: Swift.String, order: TabularData.Order = .ascending)` | func | `TabularData.swiftinterface:L1322` | No public Rust wrapper for this SDK symbol. |
-| `DataFrame.mutating func sort<T>(on columnName: Swift.String, _ type: T.Type, order: TabularData.Order = .ascending) where T : Swift.Comparable` | func | `TabularData.swiftinterface:L1323` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.mutating func sort<T>(on columnID: TabularData.ColumnID<T>, order: TabularData.Order = .ascending) where T : Swift.Comparable` | func | `TabularData.swiftinterface:L1324` | ColumnID-based typed overloads are not wrapped; the crate uses string column names. |
 | `DataFrame.mutating func sort<T0, T1>(on columnID0: TabularData.ColumnID<T0>, _ columnID1: TabularData.ColumnID<T1>, order: TabularData.Order = .ascending) where T0 : Swift.Comparable, T1 : Swift.Comparable` | func | `TabularData.swiftinterface:L1325` | ColumnID-based typed overloads are not wrapped; the crate uses string column names. |
 | `DataFrame.mutating func sort<T0, T1, T2>(on columnID0: TabularData.ColumnID<T0>, _ columnID1: TabularData.ColumnID<T1>, _ columnID2: TabularData.ColumnID<T2>, order: TabularData.Order = .ascending) where T0 : Swift.Comparable, T1 : Swift.Comparable, T2 : Swift.Comparable` | func | `TabularData.swiftinterface:L1326` | ColumnID-based typed overloads are not wrapped; the crate uses string column names. |
@@ -343,7 +363,6 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `CategoricalSummary.var debugDescription: Swift.String` | var | `TabularData.swiftinterface:L1362` | Summary value types are not bridged directly; Rust re-materializes its own summary structs. |
 | `CategoricalSummary.func hash(into hasher: inout Swift.Hasher)` | func | `TabularData.swiftinterface:L1366` | Summary value types are not bridged directly; Rust re-materializes its own summary structs. |
 | `CategoricalSummary.var hashValue: Swift.Int` | var | `TabularData.swiftinterface:L1367` | Summary value types are not bridged directly; Rust re-materializes its own summary structs. |
-| `DataFrame.var description: Swift.String` | var | `TabularData.swiftinterface:L1376` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.var debugDescription: Swift.String` | var | `TabularData.swiftinterface:L1379` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.var customMirror: Swift.Mirror` | var | `TabularData.swiftinterface:L1382` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.Slice.var description: Swift.String` | var | `TabularData.swiftinterface:L1388` | Rust uses AnyRow/DataFrame copies instead of direct nested collection bindings. |
@@ -353,7 +372,6 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `DataFrame.Row.func description(options: TabularData.FormattingOptions) -> Swift.String` | func | `TabularData.swiftinterface:L1403` | Formatting and display helpers are not wrapped. |
 | `DataFrame.Row.var debugDescription: Swift.String` | var | `TabularData.swiftinterface:L1404` | Rust uses AnyRow/DataFrame copies instead of direct nested collection bindings. |
 | `DataFrame.Row.var customMirror: Swift.Mirror` | var | `TabularData.swiftinterface:L1407` | Rust uses AnyRow/DataFrame copies instead of direct nested collection bindings. |
-| `DataFrameProtocol.func description(options: TabularData.FormattingOptions) -> Swift.String` | func | `TabularData.swiftinterface:L1413` | Formatting and display helpers are not wrapped. |
 | `CSVReadingError` | enum | `TabularData.swiftinterface:L1416` | Dedicated SDK error enums are not surfaced as Rust types. |
 | `CSVReadingError.var row: Swift.Int` | var | `TabularData.swiftinterface:L1427` | Dedicated SDK error enums are not surfaced as Rust types. |
 | `CSVReadingError.var column: Swift.Int?` | var | `TabularData.swiftinterface:L1431` | Dedicated SDK error enums are not surfaced as Rust types. |
@@ -392,8 +410,6 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `DiscontiguousColumnSlice.func hash(into hasher: inout Swift.Hasher)` | func | `TabularData.swiftinterface:L1584` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `DiscontiguousColumnSlice.func distinct() -> TabularData.DiscontiguousColumnSlice<WrappedElement>` | func | `TabularData.swiftinterface:L1585` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `DiscontiguousColumnSlice.var hashValue: Swift.Int` | var | `TabularData.swiftinterface:L1586` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `DataFrame.init(contentsOfJSONFile url: Foundation.URL, columns: [Swift.String]? = nil, types: [Swift.String : TabularData.JSONType] = [:], options: TabularData.JSONReadingOptions = .init()) throws` | init | `TabularData.swiftinterface:L1662` | JSON IO and JSON-specific errors are not wrapped. |
-| `DataFrame.init(jsonData data: Foundation.Data, columns: [Swift.String]? = nil, types: [Swift.String : TabularData.JSONType] = [:], options: TabularData.JSONReadingOptions = .init()) throws` | init | `TabularData.swiftinterface:L1665` | JSON IO and JSON-specific errors are not wrapped. |
 | `Column.func encoded<Encoder>(using encoder: Encoder) throws -> TabularData.Column<Encoder.Output> where Encoder : Combine.TopLevelEncoder` | func | `TabularData.swiftinterface:L1670` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `AnyColumn.func encoded<T, Encoder>(_ type: T.Type, using encoder: Encoder) throws -> TabularData.AnyColumn where T : Swift.Encodable, Encoder : Combine.TopLevelEncoder` | func | `TabularData.swiftinterface:L1674` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `AnyColumn.mutating func encode<T, Encoder>(_ type: T.Type, using encoder: Encoder) throws where T : Swift.Encodable, Encoder : Combine.TopLevelEncoder` | func | `TabularData.swiftinterface:L1675` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
@@ -577,8 +593,6 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `DiscontiguousColumnSlice.func standardDeviation(deltaDegreesOfFreedom: Swift.Int = 1) -> Swift.Double?` | func | `TabularData.swiftinterface:L2306` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `ColumnSlice.func mean() -> Swift.Double?` | func | `TabularData.swiftinterface:L2312` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `ColumnSlice.func standardDeviation(deltaDegreesOfFreedom: Swift.Int = 1) -> Swift.Double?` | func | `TabularData.swiftinterface:L2315` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `DataFrameProtocol.func writeJSON(to url: Foundation.URL, options: TabularData.JSONWritingOptions = .init()) throws` | func | `TabularData.swiftinterface:L2320` | JSON IO and JSON-specific errors are not wrapped. |
-| `DataFrameProtocol.func jsonRepresentation(options: TabularData.JSONWritingOptions = .init()) throws -> Foundation.Data` | func | `TabularData.swiftinterface:L2321` | JSON IO and JSON-specific errors are not wrapped. |
 | `CSVType.func hash(into hasher: inout Swift.Hasher)` | func | `TabularData.swiftinterface:L2333` | No public Rust wrapper for this SDK symbol. |
 | `CSVType.var hashValue: Swift.Int` | var | `TabularData.swiftinterface:L2334` | No public Rust wrapper for this SDK symbol. |
 | `DataFrame.Slice.func grouped(by columnName: Swift.String) -> any TabularData.RowGroupingProtocol` | func | `TabularData.swiftinterface:L2344` | Rust uses AnyRow/DataFrame copies instead of direct nested collection bindings. |
@@ -631,7 +645,6 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `AnyColumn.var description: Swift.String` | var | `TabularData.swiftinterface:L2554` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `AnyColumn.var debugDescription: Swift.String` | var | `TabularData.swiftinterface:L2557` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `AnyColumn.var customMirror: Swift.Mirror` | var | `TabularData.swiftinterface:L2560` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `AnyColumn.func distinct() -> TabularData.AnyColumnSlice` | func | `TabularData.swiftinterface:L2566` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `Column.func numericSummary() -> TabularData.NumericSummary<WrappedElement>` | func | `TabularData.swiftinterface:L2570` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `ColumnSlice.func numericSummary() -> TabularData.NumericSummary<WrappedElement>` | func | `TabularData.swiftinterface:L2574` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `DiscontiguousColumnSlice.func numericSummary() -> TabularData.NumericSummary<WrappedElement>` | func | `TabularData.swiftinterface:L2578` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
@@ -640,24 +653,12 @@ Counts include public `init` and `subscript` declarations because TabularData ex
 | `Column.func numericSummary() -> TabularData.NumericSummary<Swift.Double>` | func | `TabularData.swiftinterface:L2590` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `ColumnSlice.func numericSummary() -> TabularData.NumericSummary<Swift.Double>` | func | `TabularData.swiftinterface:L2594` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
 | `DiscontiguousColumnSlice.func numericSummary() -> TabularData.NumericSummary<Swift.Double>` | func | `TabularData.swiftinterface:L2598` | Typed column collection APIs are only partially mirrored; this symbol has no direct Rust binding. |
-| `FormattingOptions` | struct | `TabularData.swiftinterface:L2601` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.var maximumLineWidth: Swift.Int` | var | `TabularData.swiftinterface:L2602` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.var maximumCellWidth: Swift.Int` | var | `TabularData.swiftinterface:L2603` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.var maximumRowCount: Swift.Int` | var | `TabularData.swiftinterface:L2604` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.var includesColumnTypes: Swift.Bool` | var | `TabularData.swiftinterface:L2605` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.var includesRowIndices: Swift.Bool` | var | `TabularData.swiftinterface:L2607` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.var includesRowAndColumnCounts: Swift.Bool` | var | `TabularData.swiftinterface:L2609` | Formatting and display helpers are not wrapped. |
 | `FormattingOptions.var floatingPointFormatStyle: Foundation.FloatingPointFormatStyle<Swift.Double>` | var | `TabularData.swiftinterface:L2611` | Formatting and display helpers are not wrapped. |
 | `FormattingOptions.var integerFormatStyle: Foundation.IntegerFormatStyle<Swift.Int>` | var | `TabularData.swiftinterface:L2616` | Formatting and display helpers are not wrapped. |
 | `FormattingOptions.var dateFormatStyle: Foundation.Date.FormatStyle` | var | `TabularData.swiftinterface:L2621` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.var locale: Foundation.Locale` | var | `TabularData.swiftinterface:L2626` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.init()` | init | `TabularData.swiftinterface:L2630` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.init(locale: Foundation.Locale)` | init | `TabularData.swiftinterface:L2632` | Formatting and display helpers are not wrapped. |
-| `FormattingOptions.init(maximumLineWidth: Swift.Int, maximumCellWidth: Swift.Int = 50, maximumRowCount: Swift.Int = 20, includesColumnTypes: Swift.Bool = true)` | init | `TabularData.swiftinterface:L2633` | Formatting and display helpers are not wrapped. |
 
 ## ⏭️ EXEMPT
 | Symbol | Kind | Header | Reason | SDK attribute |
 | --- | --- | --- | --- | --- |
 | `CSVWritingOptions.var dateFormat: Swift.String?` | var | `TabularData.swiftinterface:L1950` | Deprecated API intentionally skipped. | `@available(*, deprecated, message: "Use dateFormatter instead.")` |
 | `CSVWritingOptions.init(includesHeader: Swift.Bool = true, dateFormat: Swift.String?, nilEncoding: Swift.String = "", trueEncoding: Swift.String = "true", falseEncoding: Swift.String = "false", newline: Swift.String = "\n", delimiter: Swift.Character = ",")` | init | `TabularData.swiftinterface:L1978` | Deprecated API intentionally skipped. | `@available(*, deprecated, message: "Use dateFormatter instead or dateFormat.")` |
-

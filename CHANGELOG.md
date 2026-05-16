@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.1] - 2026-05-16
+
+- Added JSON read/write support with typed JSON hints, configurable date parsing/formatting, in-memory JSON bytes/strings, and a dedicated JSON example/test pair.
+- Added `DataFrame` metadata and reshape helpers for column lookup, aliases, empty-row append/remove, deterministic random splits, and string-formatted descriptions.
+- Updated the coverage audit to verify the new JSON, split, formatting, and already-existing sort/row/column helpers while leaving larger typed-protocol/ShapedData gaps explicitly documented.
+
 ## [0.2.0] - 2026-05-16
 
 - Expanded the bridge from the original v0.1.0 surface to 13 logical areas: `DataFrame`, `ColumnSlice`, `ColumnEncoder`, `Filter`, `GroupBy`, `Join`, `AnyColumn`, `Sort`, `CSVReader`, `CSVWriter`, `AnyRow`, `Summary`, and `Slicing`.

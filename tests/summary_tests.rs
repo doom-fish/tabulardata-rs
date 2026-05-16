@@ -5,6 +5,11 @@ use tabulardata::prelude::*;
 #[test]
 fn summaries_cover_numeric_and_categorical_columns() -> Result<(), Box<dyn std::error::Error>> {
     let frame = common::fixture_frame()?;
+    let names = frame.column("name")?;
+    assert_eq!(names.name, "name");
+    assert_eq!(names.type_name(), "String");
+    assert_eq!(names.missing_count(), 0);
+    assert_eq!(names.len(), 4);
 
     match frame.column_summary("score")? {
         ColumnSummary::Numeric(summary) => {

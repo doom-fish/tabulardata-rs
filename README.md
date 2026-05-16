@@ -8,10 +8,10 @@ Safe, idiomatic Rust bindings for Apple's [TabularData](https://developer.apple.
 - **`DataFrame` construction** — create frames from typed `Column` values or heterogeneous `AnyRow` rows.
 - **Column introspection** — snapshot `AnyColumn` values, derive `ColumnSlice`s, and compute summaries in Rust.
 - **Column encoding** — encode/decode columns through typed JSON payloads.
-- **Filtering, sorting, slicing** — materialize row subsets, stable orderings, prefixes/suffixes, and column projections.
-- **Grouping + joins** — counts, sums, means, quantiles, minimums, maximums, and inner/left/right/full joins.
-- **CSV IO** — configurable CSV readers/writers, row/column projection, type hints, and in-memory CSV strings.
-- **13 worked examples + 13 tests** — one example and one integration test for each requested logical area.
+- **Filtering, sorting, slicing, formatting** — materialize row subsets, stable orderings, prefixes/suffixes, formatted descriptions, and column projections.
+- **Grouping, splits + joins** — counts, sums, means, quantiles, random/stratified splits, and inner/left/right/full joins.
+- **CSV + JSON IO** — configurable CSV/JSON readers and writers, row/column projection, type hints, and in-memory string/byte representations.
+- **14 worked examples + 14 tests** — one example and one integration test for each requested logical area.
 
 ## Requirements
 
@@ -22,7 +22,7 @@ Safe, idiomatic Rust bindings for Apple's [TabularData](https://developer.apple.
 
 ```toml
 [dependencies]
-tabulardata-rs = "0.2.0"
+tabulardata-rs = "0.2.1"
 ```
 
 ```rust,no_run
@@ -61,10 +61,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 | `AnyRow` | `cargo run --example 11_any_row_mutation` |
 | `Summary` | `cargo run --example 12_summary_report` |
 | `Slicing` | `cargo run --example 13_slicing_rows_and_columns` |
+| `JSON` | `cargo run --example 14_json_io` |
 
 ## Coverage
 
-See [COVERAGE.md](COVERAGE.md) for the v0.2.0 API matrix, example/test mapping, and explicit out-of-scope `TabularData` surfaces.
+See [COVERAGE.md](COVERAGE.md) for the v0.2.x API matrix, example/test mapping, and explicit out-of-scope `TabularData` surfaces.
 
 ## Notes
 

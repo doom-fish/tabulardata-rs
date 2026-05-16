@@ -325,6 +325,105 @@ impl DataFrame {
         }
     }
 
+    pub fn index_of_column(&self, name: &str) -> Result<Option<usize>, TabularDataError> {
+        let name = to_cstring(name)?;
+        let mut found = 0;
+        let mut index = 0;
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_index_of_column(
+                self.raw,
+                name.as_ptr(),
+                &mut found,
+                &mut index,
+                &mut error,
+            )
+        };
+        if status == ffi::status::OK {
+            Ok((found != 0).then_some(index))
+        } else {
+            Err(from_swift(status, error))
+        }
+    }
+
+    pub fn contains_column(&self, name: &str) -> Result<bool, TabularDataError> {
+        let name = to_cstring(name)?;
+        let mut contains = 0;
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_contains_column(self.raw, name.as_ptr(), &mut contains, &mut error)
+        };
+        if status == ffi::status::OK {
+            Ok(contains != 0)
+        } else {
+            Err(from_swift(status, error))
+        }
+    }
+
+    pub fn contains_column_of_type(
+        &self,
+        name: &str,
+        type_name: &str,
+    ) -> Result<bool, TabularDataError> {
+        let name = to_cstring(name)?;
+        let type_name = to_cstring(type_name)?;
+        let mut contains = 0;
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_contains_column_type(
+                self.raw,
+                name.as_ptr(),
+                type_name.as_ptr(),
+                &mut contains,
+                &mut error,
+            )
+        };
+        if status == ffi::status::OK {
+            Ok(contains != 0)
+        } else {
+            Err(from_swift(status, error))
+        }
+    }
+
+    pub fn column_names_for_alias(&self, alias: &str) -> Result<Vec<String>, TabularDataError> {
+        let alias = to_cstring(alias)?;
+        let mut error = core::ptr::null_mut();
+        let payload = unsafe {
+            ffi::td_dataframe_column_names_for_alias_json(self.raw, alias.as_ptr(), &mut error)
+        };
+        if payload.is_null() {
+            Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
+        } else {
+            decode_json(payload)
+        }
+    }
+
+    pub fn add_alias(&mut self, alias: &str, column_name: &str) -> Result<(), TabularDataError> {
+        let alias = to_cstring(alias)?;
+        let column_name = to_cstring(column_name)?;
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_add_alias(self.raw, alias.as_ptr(), column_name.as_ptr(), &mut error)
+        };
+        if status == ffi::status::OK {
+            Ok(())
+        } else {
+            Err(from_swift(status, error))
+        }
+    }
+
+    pub fn remove_alias(&mut self, alias: &str) -> Result<(), TabularDataError> {
+        let alias = to_cstring(alias)?;
+        let mut error = core::ptr::null_mut();
+        let status =
+            unsafe { ffi::td_dataframe_remove_alias(self.raw, alias.as_ptr(), &mut error) };
+        if status == ffi::status::OK {
+            Ok(())
+        } else {
+            Err(from_swift(status, error))
+        }
+    }
+
     pub fn append_column(&mut self, column: &Column) -> Result<(), TabularDataError> {
         let column = encode_column_json(column)?;
         let column = to_cstring(&column)?;

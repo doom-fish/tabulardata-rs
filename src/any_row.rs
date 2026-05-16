@@ -122,4 +122,24 @@ impl DataFrame {
             Err(from_swift(status, error))
         }
     }
+
+    pub fn append_empty_row(&mut self) -> Result<(), TabularDataError> {
+        let mut error = core::ptr::null_mut();
+        let status = unsafe { ffi::td_dataframe_append_empty_row(self.as_raw(), &mut error) };
+        if status == ffi::status::OK {
+            Ok(())
+        } else {
+            Err(from_swift(status, error))
+        }
+    }
+
+    pub fn remove_row(&mut self, index: usize) -> Result<(), TabularDataError> {
+        let mut error = core::ptr::null_mut();
+        let status = unsafe { ffi::td_dataframe_remove_row(self.as_raw(), index, &mut error) };
+        if status == ffi::status::OK {
+            Ok(())
+        } else {
+            Err(from_swift(status, error))
+        }
+    }
 }

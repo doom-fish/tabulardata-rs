@@ -16,6 +16,18 @@ unsafe extern "C" {
         out_frame: *mut *mut c_void,
         error_out: *mut *mut c_char,
     ) -> i32;
+    pub fn td_dataframe_from_json_file(
+        path: *const c_char,
+        request_json: *const c_char,
+        out_frame: *mut *mut c_void,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_from_json_data(
+        json_data: *const c_char,
+        request_json: *const c_char,
+        out_frame: *mut *mut c_void,
+        error_out: *mut *mut c_char,
+    ) -> i32;
     pub fn td_dataframe_from_rows_json(
         rows_json: *const c_char,
         out_frame: *mut *mut c_void,
@@ -26,6 +38,42 @@ unsafe extern "C" {
         frame: *mut c_void,
         error_out: *mut *mut c_char,
     ) -> *mut c_char;
+    pub fn td_dataframe_index_of_column(
+        frame: *mut c_void,
+        column_name: *const c_char,
+        out_found: *mut i32,
+        out_index: *mut usize,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_contains_column(
+        frame: *mut c_void,
+        column_name: *const c_char,
+        out_contains: *mut i32,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_contains_column_type(
+        frame: *mut c_void,
+        column_name: *const c_char,
+        column_type: *const c_char,
+        out_contains: *mut i32,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_column_names_for_alias_json(
+        frame: *mut c_void,
+        alias: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> *mut c_char;
+    pub fn td_dataframe_add_alias(
+        frame: *mut c_void,
+        alias: *const c_char,
+        column_name: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_remove_alias(
+        frame: *mut c_void,
+        alias: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> i32;
     pub fn td_dataframe_append_column(
         frame: *mut c_void,
         column_json: *const c_char,
@@ -85,6 +133,12 @@ unsafe extern "C" {
         frame: *mut c_void,
         index: usize,
         row_json: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_append_empty_row(frame: *mut c_void, error_out: *mut *mut c_char) -> i32;
+    pub fn td_dataframe_remove_row(
+        frame: *mut c_void,
+        index: usize,
         error_out: *mut *mut c_char,
     ) -> i32;
     pub fn td_dataframe_summary(
@@ -162,6 +216,20 @@ unsafe extern "C" {
         out_frame: *mut *mut c_void,
         error_out: *mut *mut c_char,
     ) -> i32;
+    pub fn td_dataframe_random_split(
+        frame: *mut c_void,
+        split_json: *const c_char,
+        out_left: *mut *mut c_void,
+        out_right: *mut *mut c_void,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_stratified_split_json(
+        frame: *mut c_void,
+        split_json: *const c_char,
+        out_left: *mut *mut c_void,
+        out_right: *mut *mut c_void,
+        error_out: *mut *mut c_char,
+    ) -> i32;
     pub fn td_dataframe_encode_column_json(
         frame: *mut c_void,
         request_json: *const c_char,
@@ -179,6 +247,24 @@ unsafe extern "C" {
         error_out: *mut *mut c_char,
     ) -> i32;
     pub fn td_dataframe_csv_string(
+        frame: *mut c_void,
+        options_json: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> *mut c_char;
+    pub fn td_dataframe_write_json(
+        frame: *mut c_void,
+        path: *const c_char,
+        options_json: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_json_data_json(
+        frame: *mut c_void,
+        options_json: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> *mut c_char;
+    pub fn td_dataframe_description(frame: *mut c_void, error_out: *mut *mut c_char)
+        -> *mut c_char;
+    pub fn td_dataframe_format_json(
         frame: *mut c_void,
         options_json: *const c_char,
         error_out: *mut *mut c_char,

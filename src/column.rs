@@ -84,6 +84,26 @@ impl Column {
     }
 
     #[must_use]
+    pub fn missing_count(&self) -> usize {
+        match &self.data {
+            ColumnData::Strings(values) => values.iter().filter(|value| value.is_none()).count(),
+            ColumnData::Ints(values) => values.iter().filter(|value| value.is_none()).count(),
+            ColumnData::Doubles(values) => values.iter().filter(|value| value.is_none()).count(),
+            ColumnData::Bools(values) => values.iter().filter(|value| value.is_none()).count(),
+        }
+    }
+
+    #[must_use]
+    pub const fn type_name(&self) -> &'static str {
+        match &self.data {
+            ColumnData::Strings(_) => "String",
+            ColumnData::Ints(_) => "Int",
+            ColumnData::Doubles(_) => "Double",
+            ColumnData::Bools(_) => "Bool",
+        }
+    }
+
+    #[must_use]
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
