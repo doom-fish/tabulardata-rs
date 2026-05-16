@@ -16,19 +16,53 @@
     clippy::new_without_default
 )]
 
+pub mod any_column;
+pub mod any_row;
 pub mod column;
+pub mod column_encoder;
+pub mod column_slice;
+pub mod csv_reader;
+pub mod csv_writer;
 pub mod dataframe;
 pub mod error;
 pub mod ffi;
+pub mod filter;
+pub mod groupby;
+pub mod join;
 mod private;
+pub mod slicing;
+pub mod sort;
+pub mod summary;
 
+pub use any_column::{AnyColumn, AnyValue};
+pub use any_row::AnyRow;
 pub use column::{Column, ColumnData};
+pub use column_encoder::{ColumnCodec, ColumnElementType};
+pub use column_slice::ColumnSlice;
+pub use csv_reader::{CSVReadRequest, CSVType, DateParseStrategy};
+pub use csv_writer::DateWriteStrategy;
 pub use dataframe::{CSVReadingOptions, CSVWritingOptions, DataFrame, JoinKind};
 pub use error::TabularDataError;
+pub use filter::{ComparisonOp, Filter};
+pub use groupby::{GroupBy, GroupValueType, TimeUnit};
+pub use join::JoinColumns;
+pub use sort::{SortKey, SortOrder};
+pub use summary::{CategoricalSummary, ColumnSummary, NumericSummary};
 
 /// Common imports.
 pub mod prelude {
+    pub use crate::any_column::{AnyColumn, AnyValue};
+    pub use crate::any_row::AnyRow;
     pub use crate::column::{Column, ColumnData};
+    pub use crate::column_encoder::{ColumnCodec, ColumnElementType};
+    pub use crate::column_slice::ColumnSlice;
+    pub use crate::csv_reader::{CSVReadRequest, CSVType, DateParseStrategy};
+    pub use crate::csv_writer::DateWriteStrategy;
     pub use crate::dataframe::{CSVReadingOptions, CSVWritingOptions, DataFrame, JoinKind};
     pub use crate::error::TabularDataError;
+    pub use crate::filter::{ComparisonOp, Filter};
+    pub use crate::groupby::{GroupBy, GroupValueType, TimeUnit};
+    pub use crate::join::JoinColumns;
+    pub use crate::sort::{SortKey, SortOrder};
+    pub use crate::summary::{CategoricalSummary, ColumnSummary, NumericSummary};
 }

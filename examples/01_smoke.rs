@@ -16,7 +16,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ),
         Column::doubles("score", vec![Some(98.5), Some(88.0), Some(91.25)]),
     ])?;
-    left.write_csv(&csv_path, CSVWritingOptions::default())?;
+    left.write_csv(&csv_path, &CSVWritingOptions::default())?;
 
     let reloaded = DataFrame::from_csv(&csv_path, CSVReadingOptions::default())?;
     let right = DataFrame::from_columns(&[

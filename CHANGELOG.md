@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.0] - 2026-05-16
+
+- Expanded the bridge from the original v0.1.0 surface to 13 logical areas: `DataFrame`, `ColumnSlice`, `ColumnEncoder`, `Filter`, `GroupBy`, `Join`, `AnyColumn`, `Sort`, `CSVReader`, `CSVWriter`, `AnyRow`, `Summary`, and `Slicing`.
+- Added per-area Swift bridge files and Rust modules using the retained-box `@_cdecl` bridge pattern used elsewhere in the ecosystem.
+- Added heterogeneous row/column snapshots (`AnyRow`, `AnyColumn`, `AnyValue`) plus row mutation helpers and `DataFrame::from_rows`.
+- Added filter, group-by, join, sort, slicing, column encoding, summary, and CSV projection APIs.
+- Added one example and one integration test for each logical area, plus `COVERAGE.md` documenting the implemented and intentionally skipped TabularData surface.
+
 ## [0.1.0] - 2026-05-16
 
 - Initial release of `tabulardata-rs`.

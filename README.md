@@ -4,11 +4,14 @@ Safe, idiomatic Rust bindings for Apple's [TabularData](https://developer.apple.
 
 ## Features
 
-- **Swift-only framework bridge** — wraps `TabularData.DataFrame` and `AnyColumn` behind retained Swift boxes.
-- **CSV read/write** — load CSV files into `DataFrame`, inspect shapes and columns, and write frames back to disk.
-- **Column-oriented construction** — build frames from Rust `Column` values containing strings, integers, doubles, or booleans.
-- **Summary + joins** — derive summary frames and perform left/right/full/inner joins on a column name.
-- **JSON row snapshots** — inspect heterogeneous rows as `serde_json::Value` without losing unsupported summary columns.
+- **Gold-standard Swift bridge** — retained Swift boxes plus `@_cdecl` entry points, following the same bridge style used in `screencapturekit-rs`.
+- **`DataFrame` construction** — create frames from typed `Column` values or heterogeneous `AnyRow` rows.
+- **Column introspection** — snapshot `AnyColumn` values, derive `ColumnSlice`s, and compute summaries in Rust.
+- **Column encoding** — encode/decode columns through typed JSON payloads.
+- **Filtering, sorting, slicing** — materialize row subsets, stable orderings, prefixes/suffixes, and column projections.
+- **Grouping + joins** — counts, sums, means, quantiles, minimums, maximums, and inner/left/right/full joins.
+- **CSV IO** — configurable CSV readers/writers, row/column projection, type hints, and in-memory CSV strings.
+- **13 worked examples + 13 tests** — one example and one integration test for each requested logical area.
 
 ## Requirements
 
@@ -19,35 +22,55 @@ Safe, idiomatic Rust bindings for Apple's [TabularData](https://developer.apple.
 
 ```toml
 [dependencies]
-tabulardata-rs = "0.1.0"
+tabulardata-rs = "0.2.0"
 ```
 
 ```rust,no_run
 use tabulardata::prelude::*;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let frame = DataFrame::from_columns(&[
-        Column::strings("name", vec![Some("Ada".into()), Some("Grace".into())]),
-        Column::ints("score", vec![Some(98), Some(99)]),
+    let frame = DataFrame::from_rows(&[
+        AnyRow::new()
+            .with_value("name", "Ada")
+            .with_value("score", 98.0),
+        AnyRow::new()
+            .with_value("name", "Grace")
+            .with_value("score", 99.0),
     ])?;
-    println!("shape = {:?}", frame.shape());
+
+    let sorted = frame.sorted_by(&[SortKey::descending("score")])?;
+    println!("shape = {:?}", sorted.shape());
     Ok(())
 }
 ```
 
-## Smoke example
+## Examples
 
-```bash
-cargo run --example 01_smoke
-```
+| Area | Command |
+| --- | --- |
+| `DataFrame` | `cargo run --example 01_smoke` |
+| `ColumnSlice` | `cargo run --example 02_column_slice_summary` |
+| `ColumnEncoder` | `cargo run --example 03_column_encoder_roundtrip` |
+| `Filter` | `cargo run --example 04_filter_rows` |
+| `GroupBy` | `cargo run --example 05_groupby_counts` |
+| `Join` | `cargo run --example 06_join_frames` |
+| `AnyColumn` | `cargo run --example 07_any_column_snapshot` |
+| `Sort` | `cargo run --example 08_sort_rows` |
+| `CSVReader` | `cargo run --example 09_csv_reader_subset` |
+| `CSVWriter` | `cargo run --example 10_csv_writer_string` |
+| `AnyRow` | `cargo run --example 11_any_row_mutation` |
+| `Summary` | `cargo run --example 12_summary_report` |
+| `Slicing` | `cargo run --example 13_slicing_rows_and_columns` |
 
-The smoke example creates two data frames, writes `target/tabular.csv`, reads it back through `TabularData`, performs a left join, and prints the resulting shapes.
+## Coverage
+
+See [COVERAGE.md](COVERAGE.md) for the v0.2.0 API matrix, example/test mapping, and explicit out-of-scope `TabularData` surfaces.
 
 ## Notes
 
 - `TabularData` is a Swift-only framework, so this crate is implemented through a `SwiftPM` bridge instead of Objective-C headers.
-- Typed column access currently supports `String`, `Int`, `Double`, and `Bool` columns. For mixed/summary frames, use `rows_json()`.
-- The implementation surface was validated with small Swift probes before the Rust bindings were written.
+- Typed `Column` construction covers `String`, `Int`, `Double`, and `Bool`; heterogeneous APIs use `AnyValue`/`AnyRow`.
+- Filtering, sorting, and grouping are described in Rust and executed in Swift through JSON payloads instead of bridged closures.
 
 ## License
 
