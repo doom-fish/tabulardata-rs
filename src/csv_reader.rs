@@ -8,7 +8,7 @@ use crate::dataframe::{encode_csv_read_request, path_to_cstring, CSVReadingOptio
 use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CSVType {
     Integer,
@@ -82,6 +82,34 @@ impl DataFrame {
         let mut error = core::ptr::null_mut();
         let status = unsafe {
             ffi::td_dataframe_from_csv(path.as_ptr(), request.as_ptr(), &mut raw, &mut error)
+        };
+        if status == ffi::status::OK {
+            Ok(Self::from_raw(raw))
+        } else {
+            Err(from_swift(status, error))
+        }
+    }
+
+    pub fn from_csv_data(
+        data: &[u8],
+        options: CSVReadingOptions,
+    ) -> Result<Self, TabularDataError> {
+        Self::read_csv_data_with(data, &CSVReadRequest::new(options))
+    }
+
+    pub fn read_csv_data_with(
+        data: &[u8],
+        request: &CSVReadRequest,
+    ) -> Result<Self, TabularDataError> {
+        let data = std::str::from_utf8(data).map_err(|_| {
+            TabularDataError::InvalidArgument("CSV data must be valid UTF-8".into())
+        })?;
+        let data = crate::private::to_cstring(data)?;
+        let request = encode_csv_read_request(request)?;
+        let mut raw = core::ptr::null_mut();
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_from_csv_data(data.as_ptr(), request.as_ptr(), &mut raw, &mut error)
         };
         if status == ffi::status::OK {
             Ok(Self::from_raw(raw))

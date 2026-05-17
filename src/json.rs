@@ -10,7 +10,34 @@ use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 use crate::private::{decode_json, encode_json_cstring, to_cstring};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct JSONReadingError {
+    pub message: String,
+}
+
+impl JSONReadingError {
+    #[must_use]
+    pub fn new(message: impl Into<String>) -> Self {
+        Self {
+            message: message.into(),
+        }
+    }
+
+    #[must_use]
+    pub fn from_error(error: &TabularDataError) -> Self {
+        Self::new(error.message())
+    }
+}
+
+impl std::fmt::Display for JSONReadingError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.message)
+    }
+}
+
+impl std::error::Error for JSONReadingError {}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum JSONType {
     Integer,
@@ -167,6 +194,13 @@ impl DataFrame {
         Self::read_json_with(path, &JSONReadRequest::new(options))
     }
 
+    pub fn from_json_string(
+        json: &str,
+        options: JSONReadingOptions,
+    ) -> Result<Self, TabularDataError> {
+        Self::read_json_string_with(json, &JSONReadRequest::new(options))
+    }
+
     pub fn read_json_with(
         path: impl AsRef<Path>,
         request: &JSONReadRequest,
@@ -190,6 +224,13 @@ impl DataFrame {
         options: JSONReadingOptions,
     ) -> Result<Self, TabularDataError> {
         Self::read_json_data_with(data, &JSONReadRequest::new(options))
+    }
+
+    pub fn read_json_string_with(
+        json: &str,
+        request: &JSONReadRequest,
+    ) -> Result<Self, TabularDataError> {
+        Self::read_json_data_with(json.as_bytes(), request)
     }
 
     pub fn read_json_data_with(

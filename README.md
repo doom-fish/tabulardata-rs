@@ -5,13 +5,15 @@ Safe, idiomatic Rust bindings for Apple's [TabularData](https://developer.apple.
 ## Features
 
 - **Gold-standard Swift bridge** — retained Swift boxes plus `@_cdecl` entry points, following the same bridge style used in `screencapturekit-rs`.
-- **`DataFrame` construction** — create frames from typed `Column` values or heterogeneous `AnyRow` rows.
-- **Column introspection** — snapshot `AnyColumn` values, derive `ColumnSlice`s, and compute summaries in Rust.
+- **`DataFrame` construction + mutation** — create frames from typed `Column` values or heterogeneous `AnyRow` rows, then insert/replace/remove/transform/combine/explode columns and append row families.
+- **Typed column protocols** — `ColumnId`, `ColumnPrototype`, `ColumnProtocol`, `OptionalColumnProtocol`, `AnyColumnProtocol`, `AnyColumnSlice`, and `DiscontiguousColumnSlice` mirror the Swift family through concrete Rust-friendly APIs.
+- **Column introspection + statistics** — snapshot `AnyColumn` values, derive `ColumnSlice`s, compute summaries, and query min/max/argmin/argmax/mean/stddev in Rust.
 - **Column encoding** — encode/decode columns through typed JSON payloads.
 - **Filtering, sorting, slicing, formatting** — materialize row subsets, stable orderings, prefixes/suffixes, formatted descriptions, and column projections.
-- **Grouping, splits + joins** — counts, sums, means, quantiles, random/stratified splits, and inner/left/right/full joins.
-- **CSV + JSON IO** — configurable CSV/JSON readers and writers, row/column projection, type hints, and in-memory string/byte representations.
-- **14 worked examples + 14 tests** — one example and one integration test for each requested logical area.
+- **Grouping, group summaries, splits + joins** — counts, sums, means, quantiles, group-level summaries/filtering/mapping/random splits, and inner/left/right/full joins.
+- **CSV + JSON + `SFrame` IO** — configurable CSV/JSON readers and writers, row/column projection, type hints, in-memory string/byte representations, and `SFrame` directory imports.
+- **Shaped data helpers** — pure-Rust `ShapedData<T>` mirrors the shaped export family exposed by the framework.
+- **18 worked examples + 18 tests** — the expanded v0.2.2 surface ships with dedicated validation across the new families.
 
 ## Requirements
 
@@ -22,7 +24,7 @@ Safe, idiomatic Rust bindings for Apple's [TabularData](https://developer.apple.
 
 ```toml
 [dependencies]
-tabulardata-rs = "0.2.1"
+tabulardata-rs = "0.2.2"
 ```
 
 ```rust,no_run
@@ -62,16 +64,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 | `Summary` | `cargo run --example 12_summary_report` |
 | `Slicing` | `cargo run --example 13_slicing_rows_and_columns` |
 | `JSON` | `cargo run --example 14_json_io` |
+| `TypedProtocols` | `cargo run --example 15_typed_protocols` |
+| `DataFrameMutation` | `cargo run --example 16_dataframe_mutation` |
+| `GroupSummarySplit` | `cargo run --example 17_group_summary_split` |
+| `IOExpansion` | `cargo run --example 18_io_expansion` |
 
 ## Coverage
 
-See [COVERAGE.md](COVERAGE.md) for the v0.2.x API matrix, example/test mapping, and explicit out-of-scope `TabularData` surfaces.
+See [COVERAGE.md](COVERAGE.md) for the v0.2.2 API matrix and [COVERAGE_AUDIT.md](COVERAGE_AUDIT.md) for the family-level 100% audit summary.
 
 ## Notes
 
 - `TabularData` is a Swift-only framework, so this crate is implemented through a `SwiftPM` bridge instead of Objective-C headers.
-- Typed `Column` construction covers `String`, `Int`, `Double`, and `Bool`; heterogeneous APIs use `AnyValue`/`AnyRow`.
-- Filtering, sorting, and grouping are described in Rust and executed in Swift through JSON payloads instead of bridged closures.
+- Typed `Column` construction covers `String`, `Int`, `Double`, `Bool`, `Date`, and `Data`; heterogeneous APIs use `AnyValue`/`AnyRow`.
+- Filtering, sorting, and grouping are described in Rust and executed in Swift through JSON payloads instead of bridged closures; higher-level mutation and group-summary helpers are composed from those primitives in Rust.
 
 ## License
 

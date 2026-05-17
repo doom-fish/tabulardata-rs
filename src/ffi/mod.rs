@@ -16,6 +16,12 @@ unsafe extern "C" {
         out_frame: *mut *mut c_void,
         error_out: *mut *mut c_char,
     ) -> i32;
+    pub fn td_dataframe_from_csv_data(
+        data: *const c_char,
+        request_json: *const c_char,
+        out_frame: *mut *mut c_void,
+        error_out: *mut *mut c_char,
+    ) -> i32;
     pub fn td_dataframe_from_json_file(
         path: *const c_char,
         request_json: *const c_char,
@@ -30,6 +36,12 @@ unsafe extern "C" {
     ) -> i32;
     pub fn td_dataframe_from_rows_json(
         rows_json: *const c_char,
+        out_frame: *mut *mut c_void,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_from_sframe_directory(
+        path: *const c_char,
+        request_json: *const c_char,
         out_frame: *mut *mut c_void,
         error_out: *mut *mut c_char,
     ) -> i32;

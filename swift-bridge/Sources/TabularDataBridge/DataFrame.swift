@@ -56,6 +56,30 @@ private extension TDJSONValue {
             throw td_invalid_argument("bool columns must contain booleans or nulls")
         }
     }
+
+    func optionalDate() throws -> Date? {
+        switch self {
+        case .null:
+            return nil
+        case .double(let value):
+            return Date(timeIntervalSince1970: value)
+        case .int(let value):
+            return Date(timeIntervalSince1970: Double(value))
+        default:
+            throw td_invalid_argument("date columns must contain timestamps or nulls")
+        }
+    }
+
+    func optionalData() throws -> Data? {
+        switch self {
+        case .null:
+            return nil
+        case .string(let value):
+            return Data(base64Encoded: value) ?? Data(value.utf8)
+        default:
+            throw td_invalid_argument("data columns must contain base64 strings or nulls")
+        }
+    }
 }
 
 private func td_make_any_column(_ payload: TDColumnPayload) throws -> AnyColumn {
@@ -71,6 +95,12 @@ private func td_make_any_column(_ payload: TDColumnPayload) throws -> AnyColumn 
             .eraseToAnyColumn()
     case "bool":
         return Column(name: payload.name, contents: try payload.values.map { try $0.optionalBool() })
+            .eraseToAnyColumn()
+    case "date":
+        return Column(name: payload.name, contents: try payload.values.map { try $0.optionalDate() })
+            .eraseToAnyColumn()
+    case "data":
+        return Column(name: payload.name, contents: try payload.values.map { try $0.optionalData() })
             .eraseToAnyColumn()
     default:
         throw td_invalid_argument("unsupported column kind: \(payload.kind)")
@@ -99,6 +129,18 @@ private func td_column_object(_ column: AnyColumn) throws -> [String: Any] {
             value ?? NSNull()
         }
         return ["name": column.name, "kind": "bool", "values": values]
+    }
+    if column.wrappedElementType == Date.self {
+        let values = Array(column.assumingType(Date.self)).map { value -> Any in
+            value.map(\.timeIntervalSince1970) ?? NSNull()
+        }
+        return ["name": column.name, "kind": "date", "values": values]
+    }
+    if column.wrappedElementType == Data.self {
+        let values = Array(column.assumingType(Data.self)).map { value -> Any in
+            value.map { $0.base64EncodedString() } ?? NSNull()
+        }
+        return ["name": column.name, "kind": "data", "values": values]
     }
     throw td_invalid_argument("unsupported column type: \(String(describing: column.wrappedElementType))")
 }

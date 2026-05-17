@@ -1,3 +1,5 @@
+#![allow(clippy::cast_precision_loss)]
+
 use std::ops::Range;
 
 use serde::{Deserialize, Serialize};
@@ -54,6 +56,11 @@ impl ColumnSlice {
     }
 
     #[must_use]
+    pub fn is_nil(&self, index: usize) -> bool {
+        self.value(index).map_or(true, AnyValue::is_null)
+    }
+
+    #[must_use]
     pub fn range(&self, range: Range<usize>) -> Self {
         let start = range.start.min(self.values.len());
         let end = range.end.min(self.values.len());
@@ -90,6 +97,100 @@ impl ColumnSlice {
     #[must_use]
     pub fn summary(&self) -> crate::summary::ColumnSummary {
         crate::summary::summarize_values(&self.values)
+    }
+
+    pub fn to_column(&self) -> Result<crate::column::Column, TabularDataError> {
+        crate::column::Column::from_any_values(self.name.clone(), &self.type_name, &self.values)
+    }
+
+    #[must_use]
+    pub fn min(&self) -> Option<AnyValue> {
+        self.values
+            .iter()
+            .filter(|value| !value.is_null())
+            .cloned()
+            .min_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal))
+    }
+
+    #[must_use]
+    pub fn max(&self) -> Option<AnyValue> {
+        self.values
+            .iter()
+            .filter(|value| !value.is_null())
+            .cloned()
+            .max_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal))
+    }
+
+    #[must_use]
+    pub fn argmin(&self) -> Option<usize> {
+        self.values
+            .iter()
+            .enumerate()
+            .filter(|(_, value)| !value.is_null())
+            .min_by(|(_, left), (_, right)| {
+                left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .map(|(index, _)| index)
+    }
+
+    #[must_use]
+    pub fn argmax(&self) -> Option<usize> {
+        self.values
+            .iter()
+            .enumerate()
+            .filter(|(_, value)| !value.is_null())
+            .max_by(|(_, left), (_, right)| {
+                left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .map(|(index, _)| index)
+    }
+
+    #[must_use]
+    pub fn sum(&self) -> Option<f64> {
+        let values: Vec<f64> = self.values.iter().filter_map(AnyValue::as_f64).collect();
+        (!values.is_empty()).then(|| values.iter().sum())
+    }
+
+    #[must_use]
+    pub fn mean(&self) -> Option<f64> {
+        let values: Vec<f64> = self.values.iter().filter_map(AnyValue::as_f64).collect();
+        (!values.is_empty()).then(|| values.iter().sum::<f64>() / values.len() as f64)
+    }
+
+    #[must_use]
+    pub fn standard_deviation(&self) -> Option<f64> {
+        let values: Vec<f64> = self.values.iter().filter_map(AnyValue::as_f64).collect();
+        if values.len() < 2 {
+            return None;
+        }
+        let mean = values.iter().sum::<f64>() / values.len() as f64;
+        let variance = values
+            .iter()
+            .map(|value| {
+                let delta = value - mean;
+                delta * delta
+            })
+            .sum::<f64>()
+            / (values.len() as f64 - 1.0);
+        Some(variance.sqrt())
+    }
+
+    #[must_use]
+    pub fn description(&self) -> String {
+        format!(
+            "ColumnSlice(name={}, type={}, len={}, missing={}, contiguous={})",
+            self.name,
+            self.type_name,
+            self.len(),
+            self.missing_count,
+            self.contiguous
+        )
+    }
+}
+
+impl std::fmt::Display for ColumnSlice {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(&self.description())
     }
 }
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2] - 2026-05-17
+
+- Added wholesale typed-column protocol coverage with `ColumnId`, `ColumnPrototype`, `ColumnProtocol`, `OptionalColumnProtocol`, `AnyColumnProtocol`, `AnyColumnSlice`, and `DiscontiguousColumnSlice`, plus `Date`/`Data` column constructors and statistics helpers.
+- Added broad `DataFrame` mutation helpers: column insert/replace/remove, row-mask filtering, value appends, frame appends, typed transforms/combine helpers, column-id lookups, and array-column explode support.
+- Added group-summary expansion (`GroupSummaries`, group filtering/mapping/random split, group counts/ungrouped materialization), CSV-in-memory reading, JSON string helpers, `ShapedData<T>`, and SFrame directory import requests/errors.
+- Expanded examples/tests to 18 each and refreshed the coverage docs/audit for the full v0.2.2 surface.
+
 ## [0.2.1] - 2026-05-16
 
 - Added JSON read/write support with typed JSON hints, configurable date parsing/formatting, in-memory JSON bytes/strings, and a dedicated JSON example/test pair.
