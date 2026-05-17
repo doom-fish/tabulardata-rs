@@ -38,7 +38,7 @@ name = "tabulardata"
 crate-type = ["lib"]
 
 [dependencies]
-apple-cf = { version = ">=0.4.0, <0.6", default-features = false }
+apple-cf = { version = ">=0.4, <0.8", default-features = false }
 libc = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
