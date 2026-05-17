@@ -46,9 +46,12 @@ pub(crate) fn take_owned_c_string(ptr: *mut c_char) -> String {
         return String::new();
     }
 
+    // SAFETY: The Swift bridge allocates error strings with `malloc` and passes
+    // ownership to Rust. The pointer is valid and non-null (checked above).
     let string = unsafe { core::ffi::CStr::from_ptr(ptr) }
         .to_string_lossy()
         .into_owned();
+    // SAFETY: We own the pointer from the Swift bridge and free it exactly once.
     unsafe { free(ptr.cast()) };
     string
 }

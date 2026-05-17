@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.3] - 2026-05-17
+
+- Added SAFETY comments to all unsafe FFI calls in `DataFrame::shape()`, `DataFrame::replace_with()`, and `Drop` impl for correctness audit.
+- Documented unsafe impl `Send` and `Sync` for `DataFrame` with SAFETY comments explaining the FFI contract guarantees thread-safety.
+- Added SAFETY comments to `take_owned_c_string()` error handling in `error.rs` explaining pointer ownership and lifetime.
+
 ## [0.2.2] - 2026-05-17
 
 - Added wholesale typed-column protocol coverage with `ColumnId`, `ColumnPrototype`, `ColumnProtocol`, `OptionalColumnProtocol`, `AnyColumnProtocol`, `AnyColumnSlice`, and `DiscontiguousColumnSlice`, plus `Date`/`Data` column constructors and statistics helpers.

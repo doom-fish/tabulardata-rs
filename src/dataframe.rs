@@ -267,7 +267,12 @@ pub struct DataFrame {
     raw: *mut c_void,
 }
 
+/// SAFETY: `DataFrame` wraps a Swift object handle from the `TabularData` framework.
+/// The handle is thread-safe (Obj-C reference-counted) and the FFI contract guarantees
+/// that calling `TabularData` APIs from different threads is safe.
 unsafe impl Send for DataFrame {}
+/// SAFETY: See `Send` impl above. Additionally, multiple threads can safely hold
+/// shared references to the same `DataFrame`.
 unsafe impl Sync for DataFrame {}
 
 impl DataFrame {
@@ -301,6 +306,8 @@ impl DataFrame {
     pub fn shape(&self) -> (usize, usize) {
         let mut rows = 0;
         let mut columns = 0;
+        // SAFETY: We own the valid DataFrame handle and it's guaranteed valid by
+        // the constructors (new(), from_csv(), etc.). The FFI call only reads metadata.
         unsafe { ffi::td_dataframe_shape(self.raw, &mut rows, &mut columns) };
         (rows, columns)
     }
@@ -519,6 +526,8 @@ impl DataFrame {
     }
 
     pub(crate) fn replace_with(&mut self, mut other: Self) {
+        // SAFETY: We own self.raw and release it exactly once before replacing.
+        // The FFI call handles the reference count decrement for a valid handle.
         unsafe { ffi::td_object_release(self.raw) };
         self.raw = other.raw;
         other.raw = core::ptr::null_mut();
@@ -528,6 +537,8 @@ impl DataFrame {
 impl Drop for DataFrame {
     fn drop(&mut self) {
         if !self.raw.is_null() {
+            // SAFETY: We own the handle and are about to destroy the DataFrame.
+            // The FFI call handles the reference count decrement properly.
             unsafe { ffi::td_object_release(self.raw) };
         }
     }
