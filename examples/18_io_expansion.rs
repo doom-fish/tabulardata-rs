@@ -13,7 +13,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     fs::create_dir_all(&sframe_dir)?;
     match DataFrame::from_sframe(&sframe_dir) {
         Ok(frame) => println!("unexpected sframe shape = {:?}", frame.shape()),
-        Err(error) => println!("sframe error = {}", SFrameReadingError::parse(error.message())),
+        Err(error) => println!(
+            "sframe error = {}",
+            SFrameReadingError::parse(error.message())
+        ),
     }
     Ok(())
 }

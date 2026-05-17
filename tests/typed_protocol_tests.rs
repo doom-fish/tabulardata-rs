@@ -19,7 +19,11 @@ fn typed_column_protocols_and_shaped_data_work() -> Result<(), Box<dyn std::erro
 
     let binary = Column::binary(
         "payload",
-        vec![Some("SGVsbG8=".to_string()), Some("V29ybGQ=".to_string()), None],
+        vec![
+            Some("SGVsbG8=".to_string()),
+            Some("V29ybGQ=".to_string()),
+            None,
+        ],
     );
     let frame = DataFrame::from_columns(&[joined, binary])?;
     assert_eq!(frame.column("joined_at")?.type_name(), "Date");

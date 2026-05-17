@@ -63,7 +63,8 @@ impl<T> ShapedData<T> {
 
     #[must_use]
     pub fn get(&self, indices: &[usize]) -> Option<&T> {
-        self.linear_index(indices).and_then(|index| self.contents.get(index))
+        self.linear_index(indices)
+            .and_then(|index| self.contents.get(index))
     }
 
     pub fn at(&self, indices: &[usize]) -> Result<&T, TabularDataError> {

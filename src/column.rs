@@ -135,11 +135,7 @@ pub struct Column {
 
 impl Column {
     #[must_use]
-    pub fn with_capacity(
-        name: impl Into<String>,
-        type_name: &str,
-        capacity: usize,
-    ) -> Self {
+    pub fn with_capacity(name: impl Into<String>, type_name: &str, capacity: usize) -> Self {
         Self {
             name: name.into(),
             data: ColumnData::with_capacity(type_name, capacity),
@@ -200,10 +196,10 @@ impl Column {
         values: &[AnyValue],
     ) -> Result<Self, TabularDataError> {
         let name = name.into();
-        let inferred_type = values
-            .iter()
-            .find(|value| !value.is_null())
-            .map_or_else(|| type_name.to_string(), |value| value.type_name().to_string());
+        let inferred_type = values.iter().find(|value| !value.is_null()).map_or_else(
+            || type_name.to_string(),
+            |value| value.type_name().to_string(),
+        );
         let type_name = if normalize_type_name(type_name) == "null" {
             inferred_type
         } else {
@@ -433,9 +429,10 @@ pub(crate) fn encode_column_json(column: &Column) -> Result<String, TabularDataE
             .map(|value| {
                 value.as_ref().map_or(Ok(Value::Null), |value| {
                     Number::from_f64(*value).map(Value::Number).ok_or_else(|| {
-                        TabularDataError::InvalidArgument(
-                            format!("{} columns must not contain NaN or infinite values", column.data.kind()),
-                        )
+                        TabularDataError::InvalidArgument(format!(
+                            "{} columns must not contain NaN or infinite values",
+                            column.data.kind()
+                        ))
                     })
                 })
             })
@@ -624,7 +621,11 @@ fn extremum(values: &[AnyValue], min: bool) -> Option<AnyValue> {
 
 fn extremum_index(values: &[AnyValue], min: bool) -> Option<usize> {
     let mut best: Option<(usize, &AnyValue)> = None;
-    for (index, value) in values.iter().enumerate().filter(|(_, value)| !value.is_null()) {
+    for (index, value) in values
+        .iter()
+        .enumerate()
+        .filter(|(_, value)| !value.is_null())
+    {
         let replace = best.map_or(true, |(_, current)| {
             value.partial_cmp(current).is_some_and(|ordering| {
                 if min {

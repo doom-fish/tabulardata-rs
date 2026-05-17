@@ -32,10 +32,10 @@ pub mod groupby;
 pub mod join;
 pub mod json;
 pub mod mutation;
-pub mod protocols;
 mod private;
-pub mod shaped_data;
+pub mod protocols;
 pub mod sframe;
+pub mod shaped_data;
 pub mod slicing;
 pub mod sort;
 pub mod split;
@@ -54,14 +54,16 @@ pub use filter::{ComparisonOp, Filter};
 pub use formatting::FormattingOptions;
 pub use groupby::{GroupBy, GroupSummaries, GroupValueType, TimeUnit};
 pub use join::JoinColumns;
-pub use json::{JSONReadRequest, JSONReadingError, JSONReadingOptions, JSONType, JSONWritingOptions};
+pub use json::{
+    JSONReadRequest, JSONReadingError, JSONReadingOptions, JSONType, JSONWritingOptions,
+};
 pub use protocols::{
     AnyColumnProtocol, AnyColumnPrototype, AnyColumnSlice, ColumnId, ColumnProtocol,
     ColumnPrototype, DataFrameProtocol, DataFrameRow, DataFrameRows, DataFrameSlice,
     DiscontiguousColumnSlice, FilledColumn, OptionalColumnProtocol, SummaryColumnIds,
 };
-pub use shaped_data::ShapedData;
 pub use sframe::{SFrameReadRequest, SFrameReadingError};
+pub use shaped_data::ShapedData;
 pub use sort::{SortKey, SortOrder};
 pub use summary::{CategoricalSummary, ColumnSummary, NumericSummary};
 

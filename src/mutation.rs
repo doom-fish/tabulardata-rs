@@ -124,7 +124,9 @@ impl DataFrame {
         let index = columns
             .iter()
             .position(|existing| existing.name == name)
-            .ok_or_else(|| TabularDataError::InvalidArgument(format!("no column named '{name}'")))?;
+            .ok_or_else(|| {
+                TabularDataError::InvalidArgument(format!("no column named '{name}'"))
+            })?;
         columns[index] = column.clone();
         self.rebuild_from_columns(&columns)
     }
@@ -134,13 +136,19 @@ impl DataFrame {
         let index = columns
             .iter()
             .position(|existing| existing.name == name)
-            .ok_or_else(|| TabularDataError::InvalidArgument(format!("no column named '{name}'")))?;
+            .ok_or_else(|| {
+                TabularDataError::InvalidArgument(format!("no column named '{name}'"))
+            })?;
         let removed = columns.remove(index);
         self.rebuild_from_columns(&columns)?;
         Ok(removed)
     }
 
-    pub fn transform_column<F>(&mut self, name: &str, mut transform: F) -> Result<(), TabularDataError>
+    pub fn transform_column<F>(
+        &mut self,
+        name: &str,
+        mut transform: F,
+    ) -> Result<(), TabularDataError>
     where
         F: FnMut(&AnyValue) -> AnyValue,
     {

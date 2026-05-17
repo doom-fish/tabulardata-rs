@@ -22,13 +22,25 @@ fn dataframe_mutation_helpers_work() -> Result<(), Box<dyn std::error::Error>> {
 
     frame.replace_column(
         "score",
-        &Column::doubles("score", vec![Some(100.0), Some(92.0), Some(99.5), Some(88.0)]),
+        &Column::doubles(
+            "score",
+            vec![Some(100.0), Some(92.0), Some(99.5), Some(88.0)],
+        ),
     )?;
-    frame.transform_non_null_column("score", |value| AnyValue::Double(value.as_f64().unwrap() + 1.0))?;
-    assert!(matches!(frame.column_summary("score")?, ColumnSummary::Numeric(_)));
+    frame.transform_non_null_column("score", |value| {
+        AnyValue::Double(value.as_f64().unwrap() + 1.0)
+    })?;
+    assert!(matches!(
+        frame.column_summary("score")?,
+        ColumnSummary::Numeric(_)
+    ));
 
     frame.combine_columns2("name", "team", "label", |name, team| {
-        AnyValue::String(format!("{}:{}", name.as_str().unwrap(), team.as_str().unwrap()))
+        AnyValue::String(format!(
+            "{}:{}",
+            name.as_str().unwrap(),
+            team.as_str().unwrap()
+        ))
     })?;
     assert!(frame.contains_column("label")?);
 
@@ -62,7 +74,9 @@ fn dataframe_mutation_helpers_work() -> Result<(), Box<dyn std::error::Error>> {
         .map(|row| match row.get("tags") {
             Some(AnyValue::String(value)) => Ok(value.clone()),
             Some(AnyValue::Null) | None => Ok(String::new()),
-            other => Err(TabularDataError::FrameworkError(format!("unexpected tag {other:?}"))),
+            other => Err(TabularDataError::FrameworkError(format!(
+                "unexpected tag {other:?}"
+            ))),
         })
         .collect::<Result<_, _>>()?;
     assert!(tags.contains(&"compiler".to_string()));

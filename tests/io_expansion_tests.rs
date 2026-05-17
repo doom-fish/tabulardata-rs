@@ -19,7 +19,9 @@ fn csv_data_and_sframe_helpers_work() -> Result<(), Box<dyn std::error::Error>> 
     fs::create_dir_all(&sframe_dir)?;
     let error = DataFrame::read_sframe_with(
         &sframe_dir,
-        &SFrameReadRequest::new().with_columns(["id"]).with_rows(0..1),
+        &SFrameReadRequest::new()
+            .with_columns(["id"])
+            .with_rows(0..1),
     )
     .unwrap_err();
     let parsed = SFrameReadingError::parse(error.message());
