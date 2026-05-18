@@ -14,34 +14,49 @@ use crate::ffi;
 use crate::join::JoinColumns;
 use crate::private::{decode_json, encode_json_cstring, to_cstring};
 
+/// Wraps the `TabularData` `CSVReadingOptions` counterpart.
 #[allow(clippy::struct_excessive_bools)]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CSVReadingOptions {
+    /// Wraps the `TabularData` `CSVReadingOptions.hasHeaderRow` counterpart.
     pub has_header_row: bool,
+    /// Wraps the `TabularData` `CSVReadingOptions.nilEncodings` counterpart.
     pub nil_encodings: Vec<String>,
+    /// Wraps the `TabularData` `CSVReadingOptions.trueEncodings` counterpart.
     pub true_encodings: Vec<String>,
+    /// Wraps the `TabularData` `CSVReadingOptions.falseEncodings` counterpart.
     pub false_encodings: Vec<String>,
+    /// Wraps the `TabularData` `CSVReadingOptions.floatingPointType` counterpart.
     pub floating_point_type: CSVType,
+    /// Wraps the `TabularData` `CSVReadingOptions.dateParseStrategies` counterpart.
     pub date_parse_strategies: Vec<DateParseStrategy>,
+    /// Wraps the `TabularData` `CSVReadingOptions.ignoresEmptyLines` counterpart.
     pub ignores_empty_lines: bool,
+    /// Wraps the `TabularData` `CSVReadingOptions.usesQuoting` counterpart.
     pub uses_quoting: bool,
+    /// Wraps the `TabularData` `CSVReadingOptions.usesEscaping` counterpart.
     pub uses_escaping: bool,
+    /// Wraps the `TabularData` `CSVReadingOptions.delimiter` counterpart.
     pub delimiter: char,
+    /// Wraps the `TabularData` `CSVReadingOptions.escapeCharacter` counterpart.
     pub escape_character: char,
 }
 
 impl CSVReadingOptions {
+    /// Wraps the `TabularData` `CSVReadingOptions.init` counterpart.
     #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withHasHeaderRow` counterpart.
     #[must_use]
     pub fn with_has_header_row(mut self, has_header_row: bool) -> Self {
         self.has_header_row = has_header_row;
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withNilEncodings` counterpart.
     #[must_use]
     pub fn with_nil_encodings<I, S>(mut self, nil_encodings: I) -> Self
     where
@@ -52,6 +67,7 @@ impl CSVReadingOptions {
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withTrueEncodings` counterpart.
     #[must_use]
     pub fn with_true_encodings<I, S>(mut self, true_encodings: I) -> Self
     where
@@ -62,6 +78,7 @@ impl CSVReadingOptions {
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withFalseEncodings` counterpart.
     #[must_use]
     pub fn with_false_encodings<I, S>(mut self, false_encodings: I) -> Self
     where
@@ -72,42 +89,49 @@ impl CSVReadingOptions {
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withFloatingPointType` counterpart.
     #[must_use]
     pub fn with_floating_point_type(mut self, floating_point_type: CSVType) -> Self {
         self.floating_point_type = floating_point_type;
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withDateParseStrategy` counterpart.
     #[must_use]
     pub fn with_date_parse_strategy(mut self, strategy: DateParseStrategy) -> Self {
         self.date_parse_strategies.push(strategy);
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withDelimiter` counterpart.
     #[must_use]
     pub fn with_delimiter(mut self, delimiter: char) -> Self {
         self.delimiter = delimiter;
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withEscapeCharacter` counterpart.
     #[must_use]
     pub fn with_escape_character(mut self, escape_character: char) -> Self {
         self.escape_character = escape_character;
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withIgnoresEmptyLines` counterpart.
     #[must_use]
     pub fn with_ignores_empty_lines(mut self, ignores_empty_lines: bool) -> Self {
         self.ignores_empty_lines = ignores_empty_lines;
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withUsesQuoting` counterpart.
     #[must_use]
     pub fn with_uses_quoting(mut self, uses_quoting: bool) -> Self {
         self.uses_quoting = uses_quoting;
         self
     }
 
+    /// Wraps the `TabularData` `CSVReadingOptions.withUsesEscaping` counterpart.
     #[must_use]
     pub fn with_uses_escaping(mut self, uses_escaping: bool) -> Self {
         self.uses_escaping = uses_escaping;
@@ -144,59 +168,75 @@ impl Default for CSVReadingOptions {
     }
 }
 
+/// Wraps the `TabularData` `CSVWritingOptions` counterpart.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CSVWritingOptions {
+    /// Wraps the `TabularData` `CSVWritingOptions.includesHeader` counterpart.
     pub includes_header: bool,
+    /// Wraps the `TabularData` `CSVWritingOptions.dateStrategy` counterpart.
     pub date_strategy: Option<DateWriteStrategy>,
+    /// Wraps the `TabularData` `CSVWritingOptions.nilEncoding` counterpart.
     pub nil_encoding: String,
+    /// Wraps the `TabularData` `CSVWritingOptions.trueEncoding` counterpart.
     pub true_encoding: String,
+    /// Wraps the `TabularData` `CSVWritingOptions.falseEncoding` counterpart.
     pub false_encoding: String,
+    /// Wraps the `TabularData` `CSVWritingOptions.newline` counterpart.
     pub newline: String,
+    /// Wraps the `TabularData` `CSVWritingOptions.delimiter` counterpart.
     pub delimiter: char,
 }
 
 impl CSVWritingOptions {
+    /// Wraps the `TabularData` `CSVWritingOptions.init` counterpart.
     #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Wraps the `TabularData` `CSVWritingOptions.withIncludesHeader` counterpart.
     #[must_use]
     pub fn with_includes_header(mut self, includes_header: bool) -> Self {
         self.includes_header = includes_header;
         self
     }
 
+    /// Wraps the `TabularData` `CSVWritingOptions.withDateStrategy` counterpart.
     #[must_use]
     pub fn with_date_strategy(mut self, date_strategy: DateWriteStrategy) -> Self {
         self.date_strategy = Some(date_strategy);
         self
     }
 
+    /// Wraps the `TabularData` `CSVWritingOptions.withNilEncoding` counterpart.
     #[must_use]
     pub fn with_nil_encoding(mut self, nil_encoding: impl Into<String>) -> Self {
         self.nil_encoding = nil_encoding.into();
         self
     }
 
+    /// Wraps the `TabularData` `CSVWritingOptions.withTrueEncoding` counterpart.
     #[must_use]
     pub fn with_true_encoding(mut self, true_encoding: impl Into<String>) -> Self {
         self.true_encoding = true_encoding.into();
         self
     }
 
+    /// Wraps the `TabularData` `CSVWritingOptions.withFalseEncoding` counterpart.
     #[must_use]
     pub fn with_false_encoding(mut self, false_encoding: impl Into<String>) -> Self {
         self.false_encoding = false_encoding.into();
         self
     }
 
+    /// Wraps the `TabularData` `CSVWritingOptions.withNewline` counterpart.
     #[must_use]
     pub fn with_newline(mut self, newline: impl Into<String>) -> Self {
         self.newline = newline.into();
         self
     }
 
+    /// Wraps the `TabularData` `CSVWritingOptions.withDelimiter` counterpart.
     #[must_use]
     pub fn with_delimiter(mut self, delimiter: char) -> Self {
         self.delimiter = delimiter;
@@ -218,13 +258,18 @@ impl Default for CSVWritingOptions {
     }
 }
 
+/// Wraps join kinds accepted by the `TabularData` `DataFrame.joined` counterpart.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]
 #[repr(i32)]
 pub enum JoinKind {
+    /// Wraps the `TabularData` `JoinKind.inner` case.
     Inner = 0,
+    /// Wraps the `TabularData` `JoinKind.left` case.
     Left = 1,
+    /// Wraps the `TabularData` `JoinKind.right` case.
     Right = 2,
+    /// Wraps the `TabularData` `JoinKind.full` case.
     Full = 3,
 }
 
@@ -263,19 +308,21 @@ pub(crate) struct CSVReadRequestPayload {
     options: CSVReadingOptionsPayload,
 }
 
+/// Wraps the `TabularData` `DataFrame` counterpart.
 pub struct DataFrame {
     raw: *mut c_void,
 }
 
-/// SAFETY: `DataFrame` wraps a Swift object handle from the `TabularData` framework.
+/// SAFETY: `DataFrame` wraps a Swift object handle from the ``TabularData`` framework.
 /// The handle is thread-safe (Obj-C reference-counted) and the FFI contract guarantees
-/// that calling `TabularData` APIs from different threads is safe.
+/// that calling ``TabularData`` APIs from different threads is safe.
 unsafe impl Send for DataFrame {}
 /// SAFETY: See `Send` impl above. Additionally, multiple threads can safely hold
 /// shared references to the same `DataFrame`.
 unsafe impl Sync for DataFrame {}
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.init` counterpart.
     pub fn new() -> Result<Self, TabularDataError> {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
@@ -287,6 +334,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.fromColumns` counterpart.
     pub fn from_columns(columns: &[Column]) -> Result<Self, TabularDataError> {
         let mut frame = Self::new()?;
         for column in columns {
@@ -295,6 +343,7 @@ impl DataFrame {
         Ok(frame)
     }
 
+    /// Wraps the `TabularData` `DataFrame.fromCsv` counterpart.
     pub fn from_csv(
         path: impl AsRef<Path>,
         options: CSVReadingOptions,
@@ -302,6 +351,7 @@ impl DataFrame {
         Self::read_csv_with(path, &CSVReadRequest::new(options))
     }
 
+    /// Wraps the `TabularData` `DataFrame.shape` counterpart.
     #[must_use]
     pub fn shape(&self) -> (usize, usize) {
         let mut rows = 0;
@@ -312,16 +362,19 @@ impl DataFrame {
         (rows, columns)
     }
 
+    /// Wraps the `TabularData` `DataFrame.rowCount` counterpart.
     #[must_use]
     pub fn row_count(&self) -> usize {
         self.shape().0
     }
 
+    /// Wraps the `TabularData` `DataFrame.columnCount` counterpart.
     #[must_use]
     pub fn column_count(&self) -> usize {
         self.shape().1
     }
 
+    /// Wraps the `TabularData` `DataFrame.columnNames` counterpart.
     pub fn column_names(&self) -> Result<Vec<String>, TabularDataError> {
         let mut error = core::ptr::null_mut();
         let payload = unsafe { ffi::td_dataframe_column_names_json(self.raw, &mut error) };
@@ -332,6 +385,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.indexOfColumn` counterpart.
     pub fn index_of_column(&self, name: &str) -> Result<Option<usize>, TabularDataError> {
         let name = to_cstring(name)?;
         let mut found = 0;
@@ -353,6 +407,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.containsColumn` counterpart.
     pub fn contains_column(&self, name: &str) -> Result<bool, TabularDataError> {
         let name = to_cstring(name)?;
         let mut contains = 0;
@@ -367,6 +422,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.containsColumnOfType` counterpart.
     pub fn contains_column_of_type(
         &self,
         name: &str,
@@ -392,6 +448,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.columnNamesForAlias` counterpart.
     pub fn column_names_for_alias(&self, alias: &str) -> Result<Vec<String>, TabularDataError> {
         let alias = to_cstring(alias)?;
         let mut error = core::ptr::null_mut();
@@ -405,6 +462,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.addAlias` counterpart.
     pub fn add_alias(&mut self, alias: &str, column_name: &str) -> Result<(), TabularDataError> {
         let alias = to_cstring(alias)?;
         let column_name = to_cstring(column_name)?;
@@ -419,6 +477,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.removeAlias` counterpart.
     pub fn remove_alias(&mut self, alias: &str) -> Result<(), TabularDataError> {
         let alias = to_cstring(alias)?;
         let mut error = core::ptr::null_mut();
@@ -431,6 +490,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.appendColumn` counterpart.
     pub fn append_column(&mut self, column: &Column) -> Result<(), TabularDataError> {
         let column = encode_column_json(column)?;
         let column = to_cstring(&column)?;
@@ -444,6 +504,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.renameColumn` counterpart.
     pub fn rename_column(&mut self, name: &str, new_name: &str) -> Result<(), TabularDataError> {
         let name = to_cstring(name)?;
         let new_name = to_cstring(new_name)?;
@@ -458,6 +519,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.column` counterpart.
     pub fn column(&self, name: &str) -> Result<Column, TabularDataError> {
         let name = to_cstring(name)?;
         let mut error = core::ptr::null_mut();
@@ -469,6 +531,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.rowsJson` counterpart.
     pub fn rows_json(&self) -> Result<Vec<Value>, TabularDataError> {
         let mut error = core::ptr::null_mut();
         let payload = unsafe { ffi::td_dataframe_rows_json(self.raw, &mut error) };
@@ -479,6 +542,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.summary` counterpart.
     pub fn summary(&self) -> Result<Self, TabularDataError> {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
@@ -490,6 +554,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.joined` counterpart.
     pub fn joined(
         &self,
         other: &Self,
@@ -499,6 +564,7 @@ impl DataFrame {
         self.joined_on(other, JoinColumns::same(column_name), kind)
     }
 
+    /// Wraps the `TabularData` `DataFrame.writeCsv` counterpart.
     pub fn write_csv(
         &self,
         path: impl AsRef<Path>,

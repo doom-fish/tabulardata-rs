@@ -6,56 +6,61 @@ use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 use crate::private::encode_json_cstring;
 
+/// Wraps comparison operators accepted by `TabularData` `Filter` counterparts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ComparisonOp {
+    /// Wraps the `TabularData` `ComparisonOp.eq` case.
     Eq,
+    /// Wraps the `TabularData` `ComparisonOp.ne` case.
     Ne,
+    /// Wraps the `TabularData` `ComparisonOp.lt` case.
     Lt,
+    /// Wraps the `TabularData` `ComparisonOp.lte` case.
     Lte,
+    /// Wraps the `TabularData` `ComparisonOp.gt` case.
     Gt,
+    /// Wraps the `TabularData` `ComparisonOp.gte` case.
     Gte,
 }
 
+/// Wraps `TabularData` `Filter` counterparts.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum Filter {
+    /// Wraps the `TabularData` `Filter.compare` case.
     Compare {
         column: String,
         op: ComparisonOp,
         value: AnyValue,
     },
+    /// Wraps the `TabularData` `Filter.between` case.
     Between {
         column: String,
         lower: AnyValue,
         upper: AnyValue,
     },
+    /// Wraps the `TabularData` `Filter.in` case.
     In {
         column: String,
         values: Vec<AnyValue>,
     },
-    Contains {
-        column: String,
-        value: AnyValue,
-    },
-    IsNull {
-        column: String,
-    },
-    IsNotNull {
-        column: String,
-    },
-    And {
-        filters: Vec<Self>,
-    },
-    Or {
-        filters: Vec<Self>,
-    },
-    Not {
-        filter: Box<Self>,
-    },
+    /// Wraps the `TabularData` `Filter.contains` case.
+    Contains { column: String, value: AnyValue },
+    /// Wraps the `TabularData` `Filter.isNull` case.
+    IsNull { column: String },
+    /// Wraps the `TabularData` `Filter.isNotNull` case.
+    IsNotNull { column: String },
+    /// Wraps the `TabularData` `Filter.and` case.
+    And { filters: Vec<Self> },
+    /// Wraps the `TabularData` `Filter.or` case.
+    Or { filters: Vec<Self> },
+    /// Wraps the `TabularData` `Filter.not` case.
+    Not { filter: Box<Self> },
 }
 
 impl Filter {
+    /// Wraps the `TabularData` `Filter.eq` counterpart.
     #[must_use]
     pub fn eq(column: impl Into<String>, value: impl Into<AnyValue>) -> Self {
         Self::Compare {
@@ -65,6 +70,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.ne` counterpart.
     #[must_use]
     pub fn ne(column: impl Into<String>, value: impl Into<AnyValue>) -> Self {
         Self::Compare {
@@ -74,6 +80,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.gt` counterpart.
     #[must_use]
     pub fn gt(column: impl Into<String>, value: impl Into<AnyValue>) -> Self {
         Self::Compare {
@@ -83,6 +90,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.gte` counterpart.
     #[must_use]
     pub fn gte(column: impl Into<String>, value: impl Into<AnyValue>) -> Self {
         Self::Compare {
@@ -92,6 +100,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.lt` counterpart.
     #[must_use]
     pub fn lt(column: impl Into<String>, value: impl Into<AnyValue>) -> Self {
         Self::Compare {
@@ -101,6 +110,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.lte` counterpart.
     #[must_use]
     pub fn lte(column: impl Into<String>, value: impl Into<AnyValue>) -> Self {
         Self::Compare {
@@ -110,6 +120,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.between` counterpart.
     #[must_use]
     pub fn between(
         column: impl Into<String>,
@@ -123,6 +134,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.oneOf` counterpart.
     #[must_use]
     pub fn one_of(column: impl Into<String>, values: Vec<AnyValue>) -> Self {
         Self::In {
@@ -131,6 +143,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.contains` counterpart.
     #[must_use]
     pub fn contains(column: impl Into<String>, value: impl Into<AnyValue>) -> Self {
         Self::Contains {
@@ -139,6 +152,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.isNull` counterpart.
     #[must_use]
     pub fn is_null(column: impl Into<String>) -> Self {
         Self::IsNull {
@@ -146,6 +160,7 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.isNotNull` counterpart.
     #[must_use]
     pub fn is_not_null(column: impl Into<String>) -> Self {
         Self::IsNotNull {
@@ -153,16 +168,19 @@ impl Filter {
         }
     }
 
+    /// Wraps the `TabularData` `Filter.and` counterpart.
     #[must_use]
     pub fn and(filters: Vec<Self>) -> Self {
         Self::And { filters }
     }
 
+    /// Wraps the `TabularData` `Filter.or` counterpart.
     #[must_use]
     pub fn or(filters: Vec<Self>) -> Self {
         Self::Or { filters }
     }
 
+    /// Wraps the `TabularData` `Filter.negate` counterpart.
     #[must_use]
     pub fn negate(filter: Self) -> Self {
         Self::Not {
@@ -172,6 +190,7 @@ impl Filter {
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.filtered` counterpart.
     pub fn filtered(&self, filter: &Filter) -> Result<Self, TabularDataError> {
         let filter = encode_json_cstring(filter, "filter payload")?;
         let mut raw = core::ptr::null_mut();

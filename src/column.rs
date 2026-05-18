@@ -10,17 +10,25 @@ use crate::column_slice::ColumnSlice;
 use crate::error::TabularDataError;
 use crate::summary::ColumnSummary;
 
+/// Wraps storage used by the `TabularData` `Column` counterpart.
 #[derive(Debug, Clone, PartialEq)]
 pub enum ColumnData {
+    /// Wraps the `TabularData` `ColumnData.strings` case.
     Strings(Vec<Option<String>>),
+    /// Wraps the `TabularData` `ColumnData.ints` case.
     Ints(Vec<Option<i64>>),
+    /// Wraps the `TabularData` `ColumnData.doubles` case.
     Doubles(Vec<Option<f64>>),
+    /// Wraps the `TabularData` `ColumnData.bools` case.
     Bools(Vec<Option<bool>>),
+    /// Wraps the `TabularData` `ColumnData.dates` case.
     Dates(Vec<Option<f64>>),
+    /// Wraps the `TabularData` `ColumnData.data` case.
     Data(Vec<Option<String>>),
 }
 
 impl ColumnData {
+    /// Wraps the `TabularData` `ColumnData.len` counterpart.
     #[must_use]
     pub fn len(&self) -> usize {
         match self {
@@ -31,11 +39,13 @@ impl ColumnData {
         }
     }
 
+    /// Wraps the `TabularData` `ColumnData.isEmpty` counterpart.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.len() == 0
     }
 
+    /// Wraps the `TabularData` `ColumnData.kind` counterpart.
     #[must_use]
     pub const fn kind(&self) -> &'static str {
         match self {
@@ -48,6 +58,7 @@ impl ColumnData {
         }
     }
 
+    /// Wraps the `TabularData` `ColumnData.typeName` counterpart.
     #[must_use]
     pub const fn type_name(&self) -> &'static str {
         match self {
@@ -60,6 +71,7 @@ impl ColumnData {
         }
     }
 
+    /// Wraps the `TabularData` `ColumnData.missingCount` counterpart.
     #[must_use]
     pub fn missing_count(&self) -> usize {
         match self {
@@ -72,6 +84,7 @@ impl ColumnData {
         }
     }
 
+    /// Wraps the `TabularData` `ColumnData.cleared` counterpart.
     #[must_use]
     pub fn cleared(&self) -> Self {
         match self {
@@ -84,6 +97,7 @@ impl ColumnData {
         }
     }
 
+    /// Wraps the `TabularData` `ColumnData.withCapacity` counterpart.
     #[must_use]
     pub fn with_capacity(type_name: &str, capacity: usize) -> Self {
         match normalize_type_name(type_name).as_str() {
@@ -96,6 +110,7 @@ impl ColumnData {
         }
     }
 
+    /// Wraps the `TabularData` `ColumnData.values` counterpart.
     #[must_use]
     pub fn values(&self) -> Vec<AnyValue> {
         match self {
@@ -127,13 +142,17 @@ impl ColumnData {
     }
 }
 
+/// Wraps the `TabularData` `Column` counterpart.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Column {
+    /// Wraps the `TabularData` `Column.name` counterpart.
     pub name: String,
+    /// Wraps the `TabularData` `Column.data` counterpart.
     pub data: ColumnData,
 }
 
 impl Column {
+    /// Wraps the `TabularData` `Column.withCapacity` counterpart.
     #[must_use]
     pub fn with_capacity(name: impl Into<String>, type_name: &str, capacity: usize) -> Self {
         Self {
@@ -142,6 +161,7 @@ impl Column {
         }
     }
 
+    /// Wraps the `TabularData` `Column.strings` counterpart.
     #[must_use]
     pub fn strings(name: impl Into<String>, values: Vec<Option<String>>) -> Self {
         Self {
@@ -150,6 +170,7 @@ impl Column {
         }
     }
 
+    /// Wraps the `TabularData` `Column.ints` counterpart.
     #[must_use]
     pub fn ints(name: impl Into<String>, values: Vec<Option<i64>>) -> Self {
         Self {
@@ -158,6 +179,7 @@ impl Column {
         }
     }
 
+    /// Wraps the `TabularData` `Column.doubles` counterpart.
     #[must_use]
     pub fn doubles(name: impl Into<String>, values: Vec<Option<f64>>) -> Self {
         Self {
@@ -166,6 +188,7 @@ impl Column {
         }
     }
 
+    /// Wraps the `TabularData` `Column.bools` counterpart.
     #[must_use]
     pub fn bools(name: impl Into<String>, values: Vec<Option<bool>>) -> Self {
         Self {
@@ -174,6 +197,7 @@ impl Column {
         }
     }
 
+    /// Wraps the `TabularData` `Column.dates` counterpart.
     #[must_use]
     pub fn dates(name: impl Into<String>, values: Vec<Option<f64>>) -> Self {
         Self {
@@ -182,6 +206,7 @@ impl Column {
         }
     }
 
+    /// Wraps the `TabularData` `Column.binary` counterpart.
     #[must_use]
     pub fn binary(name: impl Into<String>, values: Vec<Option<String>>) -> Self {
         Self {
@@ -190,6 +215,7 @@ impl Column {
         }
     }
 
+    /// Wraps the `TabularData` `Column.fromAnyValues` counterpart.
     pub fn from_any_values(
         name: impl Into<String>,
         type_name: &str,
@@ -280,12 +306,14 @@ impl Column {
         }
     }
 
+    /// Wraps the `TabularData` `Column.withName` counterpart.
     #[must_use]
     pub fn with_name(mut self, name: impl Into<String>) -> Self {
         self.name = name.into();
         self
     }
 
+    /// Wraps the `TabularData` `Column.cleared` counterpart.
     #[must_use]
     pub fn cleared(&self) -> Self {
         Self {
@@ -294,36 +322,43 @@ impl Column {
         }
     }
 
+    /// Wraps the `TabularData` `Column.len` counterpart.
     #[must_use]
     pub fn len(&self) -> usize {
         self.data.len()
     }
 
+    /// Wraps the `TabularData` `Column.missingCount` counterpart.
     #[must_use]
     pub fn missing_count(&self) -> usize {
         self.data.missing_count()
     }
 
+    /// Wraps the `TabularData` `Column.typeName` counterpart.
     #[must_use]
     pub fn type_name(&self) -> &'static str {
         self.data.type_name()
     }
 
+    /// Wraps the `TabularData` `Column.isEmpty` counterpart.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 
+    /// Wraps the `TabularData` `Column.value` counterpart.
     #[must_use]
     pub fn value(&self, index: usize) -> Option<AnyValue> {
         self.values().get(index).cloned()
     }
 
+    /// Wraps the `TabularData` `Column.values` counterpart.
     #[must_use]
     pub fn values(&self) -> Vec<AnyValue> {
         self.data.values()
     }
 
+    /// Wraps the `TabularData` `Column.slice` counterpart.
     #[must_use]
     pub fn slice(&self, range: std::ops::Range<usize>) -> ColumnSlice {
         let values = self.values();
@@ -338,53 +373,63 @@ impl Column {
         )
     }
 
+    /// Wraps the `TabularData` `Column.distinct` counterpart.
     #[must_use]
     pub fn distinct(&self) -> ColumnSlice {
         self.slice(0..self.len()).distinct()
     }
 
+    /// Wraps the `TabularData` `Column.summary` counterpart.
     #[must_use]
     pub fn summary(&self) -> ColumnSummary {
         crate::summary::summarize_values(&self.values())
     }
 
+    /// Wraps the `TabularData` `Column.min` counterpart.
     #[must_use]
     pub fn min(&self) -> Option<AnyValue> {
         extremum(&self.values(), true)
     }
 
+    /// Wraps the `TabularData` `Column.max` counterpart.
     #[must_use]
     pub fn max(&self) -> Option<AnyValue> {
         extremum(&self.values(), false)
     }
 
+    /// Wraps the `TabularData` `Column.argmin` counterpart.
     #[must_use]
     pub fn argmin(&self) -> Option<usize> {
         extremum_index(&self.values(), true)
     }
 
+    /// Wraps the `TabularData` `Column.argmax` counterpart.
     #[must_use]
     pub fn argmax(&self) -> Option<usize> {
         extremum_index(&self.values(), false)
     }
 
+    /// Wraps the `TabularData` `Column.sum` counterpart.
     #[must_use]
     pub fn sum(&self) -> Option<f64> {
         let values = numeric_values(&self.values());
         (!values.is_empty()).then(|| values.iter().sum())
     }
 
+    /// Wraps the `TabularData` `Column.mean` counterpart.
     #[must_use]
     pub fn mean(&self) -> Option<f64> {
         let values = numeric_values(&self.values());
         (!values.is_empty()).then(|| values.iter().sum::<f64>() / values.len() as f64)
     }
 
+    /// Wraps the `TabularData` `Column.standardDeviation` counterpart.
     #[must_use]
     pub fn standard_deviation(&self) -> Option<f64> {
         standard_deviation(&numeric_values(&self.values()))
     }
 
+    /// Wraps the `TabularData` `Column.description` counterpart.
     #[must_use]
     pub fn description(&self) -> String {
         format!(

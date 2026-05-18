@@ -19,6 +19,7 @@ struct StratifiedSplitPayload {
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.randomSplit` counterpart.
     pub fn random_split(
         &self,
         proportion: f64,
@@ -45,6 +46,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.stratifiedSplit` counterpart.
     pub fn stratified_split<S: AsRef<str>>(
         &self,
         columns: &[S],

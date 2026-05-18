@@ -5,21 +5,31 @@ use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 use crate::private::encode_json_cstring;
 
+/// Wraps element-type hints used by `TabularData` `ColumnEncoder` counterparts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ColumnElementType {
+    /// Wraps the `TabularData` `ColumnElementType.string` case.
     String,
+    /// Wraps the `TabularData` `ColumnElementType.int` case.
     Int,
+    /// Wraps the `TabularData` `ColumnElementType.double` case.
     Double,
+    /// Wraps the `TabularData` `ColumnElementType.bool` case.
     Bool,
+    /// Wraps the `TabularData` `ColumnElementType.date` case.
     Date,
+    /// Wraps the `TabularData` `ColumnElementType.data` case.
     Data,
 }
 
+/// Wraps codec values used by `TabularData` `ColumnEncoder` counterparts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ColumnCodec {
+    /// Wraps the `TabularData` `ColumnCodec.json` case.
     Json,
+    /// Wraps the `TabularData` `ColumnCodec.propertyList` case.
     PropertyList,
 }
 
@@ -31,6 +41,7 @@ struct ColumnCodingRequest<'a> {
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.encodeColumn` counterpart.
     pub fn encode_column(
         &mut self,
         column: &str,
@@ -56,6 +67,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.decodeColumn` counterpart.
     pub fn decode_column(
         &mut self,
         column: &str,

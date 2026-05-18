@@ -7,25 +7,39 @@ use crate::ffi;
 use crate::private::encode_json_cstring;
 use crate::sort::SortOrder;
 
+/// Wraps `TabularData` time units used by grouped `DataFrame` counterparts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TimeUnit {
+    /// Wraps the `TabularData` `TimeUnit.year` case.
     Year,
+    /// Wraps the `TabularData` `TimeUnit.month` case.
     Month,
+    /// Wraps the `TabularData` `TimeUnit.day` case.
     Day,
+    /// Wraps the `TabularData` `TimeUnit.hour` case.
     Hour,
+    /// Wraps the `TabularData` `TimeUnit.minute` case.
     Minute,
+    /// Wraps the `TabularData` `TimeUnit.second` case.
     Second,
+    /// Wraps the `TabularData` `TimeUnit.weekOfYear` case.
     WeekOfYear,
 }
 
+/// Wraps value-type hints accepted by `TabularData` grouped-aggregation counterparts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GroupValueType {
+    /// Wraps the `TabularData` `GroupValueType.string` case.
     String,
+    /// Wraps the `TabularData` `GroupValueType.int` case.
     Int,
+    /// Wraps the `TabularData` `GroupValueType.double` case.
     Double,
+    /// Wraps the `TabularData` `GroupValueType.bool` case.
     Bool,
+    /// Wraps the `TabularData` `GroupValueType.date` case.
     Date,
 }
 
@@ -68,42 +82,52 @@ enum GroupAggregation {
     },
 }
 
+/// Wraps grouped `DataFrame` operations from the `TabularData` framework.
 pub struct GroupBy<'a> {
     frame: &'a DataFrame,
     spec: GroupBySpec,
 }
 
+/// Wraps one grouped-summary entry produced by `TabularData` `DataFrame` counterparts.
 pub struct GroupSummaryEntry {
+    /// Wraps the `TabularData` `GroupSummaryEntry.keys` counterpart.
     pub keys: Vec<AnyValue>,
+    /// Wraps the `TabularData` `GroupSummaryEntry.summary` counterpart.
     pub summary: DataFrame,
 }
 
+/// Wraps grouped summaries produced by `TabularData` `DataFrame` counterparts.
 pub struct GroupSummaries {
     grouping_columns: Vec<String>,
     entries: Vec<GroupSummaryEntry>,
 }
 
 impl GroupSummaries {
+    /// Wraps the `TabularData` `GroupSummaries.groupingColumns` counterpart.
     #[must_use]
     pub fn grouping_columns(&self) -> &[String] {
         &self.grouping_columns
     }
 
+    /// Wraps the `TabularData` `GroupSummaries.len` counterpart.
     #[must_use]
     pub fn len(&self) -> usize {
         self.entries.len()
     }
 
+    /// Wraps the `TabularData` `GroupSummaries.isEmpty` counterpart.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.entries.is_empty()
     }
 
+    /// Wraps the `TabularData` `GroupSummaries.entries` counterpart.
     #[must_use]
     pub fn entries(&self) -> &[GroupSummaryEntry] {
         &self.entries
     }
 
+    /// Wraps the `TabularData` `GroupSummaries.group` counterpart.
     #[must_use]
     pub fn group(&self, keys: &[AnyValue]) -> Option<&DataFrame> {
         self.entries
@@ -112,6 +136,7 @@ impl GroupSummaries {
             .map(|entry| &entry.summary)
     }
 
+    /// Wraps the `TabularData` `GroupSummaries.description` counterpart.
     #[must_use]
     pub fn description(&self) -> String {
         format!(
@@ -121,6 +146,7 @@ impl GroupSummaries {
         )
     }
 
+    /// Wraps the `TabularData` `GroupSummaries.format` counterpart.
     pub fn format(
         &self,
         options: &crate::formatting::FormattingOptions,
@@ -141,6 +167,7 @@ impl std::fmt::Display for GroupSummaries {
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.groupBy` counterpart.
     #[must_use]
     pub fn group_by<S: AsRef<str>>(&self, columns: &[S]) -> GroupBy<'_> {
         GroupBy {
@@ -155,6 +182,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.groupByTime` counterpart.
     #[must_use]
     pub fn group_by_time(&self, column: &str, time_unit: TimeUnit) -> GroupBy<'_> {
         GroupBy {
@@ -168,10 +196,12 @@ impl DataFrame {
 }
 
 impl GroupBy<'_> {
+    /// Wraps the `TabularData` `GroupBy.counts` counterpart.
     pub fn counts(&self, order: Option<SortOrder>) -> Result<DataFrame, TabularDataError> {
         self.aggregate(&GroupAggregation::Counts { order })
     }
 
+    /// Wraps the `TabularData` `GroupBy.sums` counterpart.
     pub fn sums(
         &self,
         column: &str,
@@ -185,6 +215,7 @@ impl GroupBy<'_> {
         })
     }
 
+    /// Wraps the `TabularData` `GroupBy.means` counterpart.
     pub fn means(
         &self,
         column: &str,
@@ -198,6 +229,7 @@ impl GroupBy<'_> {
         })
     }
 
+    /// Wraps the `TabularData` `GroupBy.quantiles` counterpart.
     pub fn quantiles(
         &self,
         column: &str,
@@ -211,6 +243,7 @@ impl GroupBy<'_> {
         })
     }
 
+    /// Wraps the `TabularData` `GroupBy.minimums` counterpart.
     pub fn minimums(
         &self,
         column: &str,
@@ -224,6 +257,7 @@ impl GroupBy<'_> {
         })
     }
 
+    /// Wraps the `TabularData` `GroupBy.maximums` counterpart.
     pub fn maximums(
         &self,
         column: &str,
@@ -237,6 +271,7 @@ impl GroupBy<'_> {
         })
     }
 
+    /// Wraps the `TabularData` `GroupBy.group` counterpart.
     pub fn group(&self, keys: &[AnyValue]) -> Result<Option<DataFrame>, TabularDataError> {
         let group = encode_json_cstring(&self.spec, "grouping spec")?;
         let keys = encode_json_cstring(&keys, "group keys")?;
@@ -262,14 +297,17 @@ impl GroupBy<'_> {
         }
     }
 
+    /// Wraps the `TabularData` `GroupBy.groupCount` counterpart.
     pub fn group_count(&self) -> Result<usize, TabularDataError> {
         Ok(self.counts(None)?.row_count())
     }
 
+    /// Wraps the `TabularData` `GroupBy.ungrouped` counterpart.
     pub fn ungrouped(&self) -> Result<DataFrame, TabularDataError> {
         self.frame.try_clone()
     }
 
+    /// Wraps the `TabularData` `GroupBy.filterGroups` counterpart.
     pub fn filter_groups<F>(&self, mut predicate: F) -> Result<DataFrame, TabularDataError>
     where
         F: FnMut(&DataFrame) -> Result<bool, TabularDataError>,
@@ -283,6 +321,7 @@ impl GroupBy<'_> {
         Ok(filtered)
     }
 
+    /// Wraps the `TabularData` `GroupBy.mapGroups` counterpart.
     pub fn map_groups<F>(&self, mut transform: F) -> Result<DataFrame, TabularDataError>
     where
         F: FnMut(&DataFrame) -> Result<DataFrame, TabularDataError>,
@@ -303,6 +342,7 @@ impl GroupBy<'_> {
         clippy::cast_precision_loss,
         clippy::cast_sign_loss
     )]
+    /// Wraps the `TabularData` `GroupBy.randomSplit` counterpart.
     pub fn random_split(
         &self,
         proportion: f64,
@@ -328,10 +368,12 @@ impl GroupBy<'_> {
         Ok((left, right))
     }
 
+    /// Wraps the `TabularData` `GroupBy.summary` counterpart.
     pub fn summary(&self) -> Result<GroupSummaries, TabularDataError> {
         self.build_summaries(None)
     }
 
+    /// Wraps the `TabularData` `GroupBy.summaryOf` counterpart.
     pub fn summary_of<S: AsRef<str>>(
         &self,
         columns: &[S],

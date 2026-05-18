@@ -5,15 +5,20 @@ use libc::free;
 
 use crate::ffi;
 
+/// Wraps errors surfaced by `TabularData` framework calls.
 #[derive(Debug, Clone, PartialEq, Eq)]
 #[non_exhaustive]
 pub enum TabularDataError {
+    /// Wraps the `TabularData` `TabularDataError.invalidArgument` case.
     InvalidArgument(String),
+    /// Wraps the `TabularData` `TabularDataError.frameworkError` case.
     FrameworkError(String),
+    /// Wraps the `TabularData` `TabularDataError.unknown` case.
     Unknown { code: i32, message: String },
 }
 
 impl TabularDataError {
+    /// Wraps the `TabularData` `TabularDataError.code` counterpart.
     #[must_use]
     pub const fn code(&self) -> i32 {
         match self {
@@ -23,6 +28,7 @@ impl TabularDataError {
         }
     }
 
+    /// Wraps the `TabularData` `TabularDataError.message` counterpart.
     #[must_use]
     pub fn message(&self) -> &str {
         match self {

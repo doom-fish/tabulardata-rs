@@ -10,17 +10,25 @@ use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 use crate::private::{encode_json_cstring, to_cstring};
 
+/// Wraps the `TabularData` `ColumnSlice` counterpart.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ColumnSlice {
+    /// Wraps the `TabularData` `ColumnSlice.name` counterpart.
     pub name: String,
+    /// Wraps the `TabularData` `ColumnSlice.typeName` counterpart.
     pub type_name: String,
+    /// Wraps the `TabularData` `ColumnSlice.missingCount` counterpart.
     pub missing_count: usize,
+    /// Wraps the `TabularData` `ColumnSlice.values` counterpart.
     pub values: Vec<AnyValue>,
+    /// Wraps the `TabularData` `ColumnSlice.contiguous` counterpart.
     pub contiguous: bool,
+    /// Wraps the `TabularData` `ColumnSlice.indices` counterpart.
     pub indices: Vec<usize>,
 }
 
 impl ColumnSlice {
+    /// Wraps the `TabularData` `ColumnSlice.init` counterpart.
     #[must_use]
     pub fn new(
         name: impl Into<String>,
@@ -40,26 +48,31 @@ impl ColumnSlice {
         }
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.len` counterpart.
     #[must_use]
     pub fn len(&self) -> usize {
         self.values.len()
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.isEmpty` counterpart.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.values.is_empty()
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.value` counterpart.
     #[must_use]
     pub fn value(&self, index: usize) -> Option<&AnyValue> {
         self.values.get(index)
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.isNil` counterpart.
     #[must_use]
     pub fn is_nil(&self, index: usize) -> bool {
         self.value(index).map_or(true, AnyValue::is_null)
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.range` counterpart.
     #[must_use]
     pub fn range(&self, range: Range<usize>) -> Self {
         let start = range.start.min(self.values.len());
@@ -73,6 +86,7 @@ impl ColumnSlice {
         )
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.distinct` counterpart.
     #[must_use]
     pub fn distinct(&self) -> Self {
         let mut seen = std::collections::BTreeSet::new();
@@ -94,15 +108,18 @@ impl ColumnSlice {
         )
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.summary` counterpart.
     #[must_use]
     pub fn summary(&self) -> crate::summary::ColumnSummary {
         crate::summary::summarize_values(&self.values)
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.toColumn` counterpart.
     pub fn to_column(&self) -> Result<crate::column::Column, TabularDataError> {
         crate::column::Column::from_any_values(self.name.clone(), &self.type_name, &self.values)
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.min` counterpart.
     #[must_use]
     pub fn min(&self) -> Option<AnyValue> {
         self.values
@@ -112,6 +129,7 @@ impl ColumnSlice {
             .min_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal))
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.max` counterpart.
     #[must_use]
     pub fn max(&self) -> Option<AnyValue> {
         self.values
@@ -121,6 +139,7 @@ impl ColumnSlice {
             .max_by(|left, right| left.partial_cmp(right).unwrap_or(std::cmp::Ordering::Equal))
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.argmin` counterpart.
     #[must_use]
     pub fn argmin(&self) -> Option<usize> {
         self.values
@@ -133,6 +152,7 @@ impl ColumnSlice {
             .map(|(index, _)| index)
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.argmax` counterpart.
     #[must_use]
     pub fn argmax(&self) -> Option<usize> {
         self.values
@@ -145,18 +165,21 @@ impl ColumnSlice {
             .map(|(index, _)| index)
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.sum` counterpart.
     #[must_use]
     pub fn sum(&self) -> Option<f64> {
         let values: Vec<f64> = self.values.iter().filter_map(AnyValue::as_f64).collect();
         (!values.is_empty()).then(|| values.iter().sum())
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.mean` counterpart.
     #[must_use]
     pub fn mean(&self) -> Option<f64> {
         let values: Vec<f64> = self.values.iter().filter_map(AnyValue::as_f64).collect();
         (!values.is_empty()).then(|| values.iter().sum::<f64>() / values.len() as f64)
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.standardDeviation` counterpart.
     #[must_use]
     pub fn standard_deviation(&self) -> Option<f64> {
         let values: Vec<f64> = self.values.iter().filter_map(AnyValue::as_f64).collect();
@@ -175,6 +198,7 @@ impl ColumnSlice {
         Some(variance.sqrt())
     }
 
+    /// Wraps the `TabularData` `ColumnSlice.description` counterpart.
     #[must_use]
     pub fn description(&self) -> String {
         format!(
@@ -195,6 +219,7 @@ impl std::fmt::Display for ColumnSlice {
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.columnSlice` counterpart.
     pub fn column_slice(
         &self,
         name: &str,
@@ -218,6 +243,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.columnMask` counterpart.
     pub fn column_mask(&self, name: &str, mask: &[bool]) -> Result<ColumnSlice, TabularDataError> {
         let name = to_cstring(name)?;
         let mask = encode_json_cstring(&mask, "column mask")?;

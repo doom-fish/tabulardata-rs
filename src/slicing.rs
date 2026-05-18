@@ -6,6 +6,7 @@ use crate::ffi;
 use crate::private::encode_json_cstring;
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.sliceRows` counterpart.
     pub fn slice_rows(&self, range: Range<usize>) -> Result<Self, TabularDataError> {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
@@ -25,6 +26,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.prefixRows` counterpart.
     pub fn prefix_rows(&self, len: usize) -> Result<Self, TabularDataError> {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
@@ -37,6 +39,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.suffixRows` counterpart.
     pub fn suffix_rows(&self, len: usize) -> Result<Self, TabularDataError> {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
@@ -49,6 +52,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.selectColumns` counterpart.
     pub fn select_columns<S: AsRef<str>>(&self, columns: &[S]) -> Result<Self, TabularDataError> {
         let columns: Vec<String> = columns
             .iter()

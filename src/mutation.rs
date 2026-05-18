@@ -5,10 +5,12 @@ use crate::dataframe::DataFrame;
 use crate::error::TabularDataError;
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.tryClone` counterpart.
     pub fn try_clone(&self) -> Result<Self, TabularDataError> {
         self.slice_rows(0..self.row_count())
     }
 
+    /// Wraps the `TabularData` `DataFrame.columnAt` counterpart.
     pub fn column_at(&self, index: usize) -> Result<Column, TabularDataError> {
         let names = self.column_names()?;
         let name = names.get(index).ok_or_else(|| {
@@ -17,6 +19,7 @@ impl DataFrame {
         self.column(name)
     }
 
+    /// Wraps the `TabularData` `DataFrame.anyColumnAt` counterpart.
     pub fn any_column_at(&self, index: usize) -> Result<AnyColumn, TabularDataError> {
         let names = self.column_names()?;
         let name = names.get(index).ok_or_else(|| {
@@ -25,6 +28,7 @@ impl DataFrame {
         self.any_column(name)
     }
 
+    /// Wraps the `TabularData` `DataFrame.containsColumnId` counterpart.
     pub fn contains_column_id<T>(
         &self,
         id: &crate::protocols::ColumnId<T>,
@@ -32,6 +36,7 @@ impl DataFrame {
         self.contains_column(id.name())
     }
 
+    /// Wraps the `TabularData` `DataFrame.columnById` counterpart.
     pub fn column_by_id<T>(
         &self,
         id: &crate::protocols::ColumnId<T>,
@@ -39,6 +44,7 @@ impl DataFrame {
         self.column(id.name())
     }
 
+    /// Wraps the `TabularData` `DataFrame.maskRows` counterpart.
     pub fn mask_rows(&self, mask: &[bool]) -> Result<Self, TabularDataError> {
         if mask.len() != self.row_count() {
             return Err(TabularDataError::InvalidArgument(format!(
@@ -59,6 +65,7 @@ impl DataFrame {
         ordered_frame_from_rows(&rows, &self.column_names()?)
     }
 
+    /// Wraps the `TabularData` `DataFrame.filteredByColumn` counterpart.
     pub fn filtered_by_column<F>(
         &self,
         name: &str,
@@ -72,6 +79,7 @@ impl DataFrame {
         self.mask_rows(&mask)
     }
 
+    /// Wraps the `TabularData` `DataFrame.appendValues` counterpart.
     pub fn append_values(&mut self, values: &[AnyValue]) -> Result<(), TabularDataError> {
         let column_names = self.column_names()?;
         if column_names.len() != values.len() {
@@ -88,6 +96,7 @@ impl DataFrame {
         self.append_row(&row)
     }
 
+    /// Wraps the `TabularData` `DataFrame.appendRowsOf` counterpart.
     pub fn append_rows_of(&mut self, other: &Self) -> Result<(), TabularDataError> {
         let expected = self.column_names()?;
         let actual = other.column_names()?;
@@ -102,10 +111,12 @@ impl DataFrame {
         Ok(())
     }
 
+    /// Wraps the `TabularData` `DataFrame.appendFrame` counterpart.
     pub fn append_frame(&mut self, other: &Self) -> Result<(), TabularDataError> {
         self.append_rows_of(other)
     }
 
+    /// Wraps the `TabularData` `DataFrame.insertColumn` counterpart.
     pub fn insert_column(&mut self, index: usize, column: &Column) -> Result<(), TabularDataError> {
         self.validate_column_length(column.len())?;
         let mut columns = self.owned_columns()?;
@@ -118,6 +129,7 @@ impl DataFrame {
         self.rebuild_from_columns(&columns)
     }
 
+    /// Wraps the `TabularData` `DataFrame.replaceColumn` counterpart.
     pub fn replace_column(&mut self, name: &str, column: &Column) -> Result<(), TabularDataError> {
         self.validate_column_length(column.len())?;
         let mut columns = self.owned_columns()?;
@@ -131,6 +143,7 @@ impl DataFrame {
         self.rebuild_from_columns(&columns)
     }
 
+    /// Wraps the `TabularData` `DataFrame.removeColumn` counterpart.
     pub fn remove_column(&mut self, name: &str) -> Result<Column, TabularDataError> {
         let mut columns = self.owned_columns()?;
         let index = columns
@@ -144,6 +157,7 @@ impl DataFrame {
         Ok(removed)
     }
 
+    /// Wraps the `TabularData` `DataFrame.transformColumn` counterpart.
     pub fn transform_column<F>(
         &mut self,
         name: &str,
@@ -158,6 +172,7 @@ impl DataFrame {
         self.replace_column(name, &replacement)
     }
 
+    /// Wraps the `TabularData` `DataFrame.transformNonNullColumn` counterpart.
     pub fn transform_non_null_column<F>(
         &mut self,
         name: &str,
@@ -175,6 +190,7 @@ impl DataFrame {
         })
     }
 
+    /// Wraps the `TabularData` `DataFrame.combineColumns2` counterpart.
     pub fn combine_columns2<F>(
         &mut self,
         left: &str,
@@ -201,6 +217,7 @@ impl DataFrame {
         self.upsert_derived_column(new_name, &values)
     }
 
+    /// Wraps the `TabularData` `DataFrame.combineColumns3` counterpart.
     pub fn combine_columns3<F>(
         &mut self,
         first: &str,
@@ -232,12 +249,14 @@ impl DataFrame {
         self.upsert_derived_column(new_name, &values)
     }
 
+    /// Wraps the `TabularData` `DataFrame.explodeColumn` counterpart.
     pub fn explode_column(&mut self, name: &str) -> Result<(), TabularDataError> {
         let replacement = self.exploding_column(name)?;
         self.replace_with(replacement);
         Ok(())
     }
 
+    /// Wraps the `TabularData` `DataFrame.explodingColumn` counterpart.
     pub fn exploding_column(&self, name: &str) -> Result<Self, TabularDataError> {
         let column_names = self.column_names()?;
         let mut rows = Vec::new();

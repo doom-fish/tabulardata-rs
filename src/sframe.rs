@@ -7,18 +7,23 @@ use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 use crate::private::encode_json_cstring;
 
+/// Wraps the `TabularData` `SFrame` read request counterpart.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct SFrameReadRequest {
+    /// Wraps the `TabularData` `SFrameReadRequest.columns` counterpart.
     pub columns: Option<Vec<String>>,
+    /// Wraps the `TabularData` `SFrameReadRequest.rows` counterpart.
     pub rows: Option<std::ops::Range<usize>>,
 }
 
 impl SFrameReadRequest {
+    /// Wraps the `TabularData` `SFrameReadRequest.init` counterpart.
     #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Wraps the `TabularData` `SFrameReadRequest.withColumns` counterpart.
     #[must_use]
     pub fn with_columns<I, S>(mut self, columns: I) -> Self
     where
@@ -29,6 +34,7 @@ impl SFrameReadRequest {
         self
     }
 
+    /// Wraps the `TabularData` `SFrameReadRequest.withRows` counterpart.
     #[must_use]
     pub fn with_rows(mut self, rows: std::ops::Range<usize>) -> Self {
         self.rows = Some(rows);
@@ -36,19 +42,29 @@ impl SFrameReadRequest {
     }
 }
 
+/// Wraps `SFrame`-reading errors surfaced by `TabularData` counterparts.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SFrameReadingError {
+    /// Wraps the `TabularData` `SFrameReadingError.missingArchive` case.
     MissingArchive,
+    /// Wraps the `TabularData` `SFrameReadingError.badArchive` case.
     BadArchive(String),
+    /// Wraps the `TabularData` `SFrameReadingError.unsupportedArchive` case.
     UnsupportedArchive(String),
+    /// Wraps the `TabularData` `SFrameReadingError.unsupportedType` case.
     UnsupportedType(i64),
+    /// Wraps the `TabularData` `SFrameReadingError.unsupportedLayout` case.
     UnsupportedLayout(String),
+    /// Wraps the `TabularData` `SFrameReadingError.badEncoding` case.
     BadEncoding(String),
+    /// Wraps the `TabularData` `SFrameReadingError.missingColumn` case.
     MissingColumn(String),
+    /// Wraps the `TabularData` `SFrameReadingError.message` case.
     Message(String),
 }
 
 impl SFrameReadingError {
+    /// Wraps the `TabularData` `SFrameReadingError.parse` counterpart.
     #[must_use]
     pub fn parse(message: &str) -> Self {
         let message = message.trim();
@@ -96,10 +112,12 @@ struct SFrameReadRequestPayload {
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.fromSframe` counterpart.
     pub fn from_sframe(path: impl AsRef<Path>) -> Result<Self, TabularDataError> {
         Self::read_sframe_with(path, &SFrameReadRequest::new())
     }
 
+    /// Wraps the `TabularData` `DataFrame.readSframeWith` counterpart.
     pub fn read_sframe_with(
         path: impl AsRef<Path>,
         request: &SFrameReadRequest,

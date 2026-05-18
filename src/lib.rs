@@ -5,7 +5,7 @@
 //! # API documentation
 //!
 //! Safe Rust bindings for Apple's
-//! [TabularData](https://developer.apple.com/documentation/tabulardata)
+//! [`TabularData`](https://developer.apple.com/documentation/tabulardata)
 //! framework.
 #![cfg_attr(docsrs, feature(doc_cfg))]
 #![allow(

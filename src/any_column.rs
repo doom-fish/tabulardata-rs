@@ -11,27 +11,39 @@ use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 use crate::private::to_cstring;
 
+/// Wraps values carried by `TabularData` `AnyColumn` and `DataFrame.Row` counterparts.
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", content = "value", rename_all = "snake_case")]
 pub enum AnyValue {
+    /// Wraps the `TabularData` `AnyValue.null` case.
     #[default]
     Null,
+    /// Wraps the `TabularData` `AnyValue.string` case.
     String(String),
+    /// Wraps the `TabularData` `AnyValue.int` case.
     Int(i64),
+    /// Wraps the `TabularData` `AnyValue.double` case.
     Double(f64),
+    /// Wraps the `TabularData` `AnyValue.bool` case.
     Bool(bool),
+    /// Wraps the `TabularData` `AnyValue.date` case.
     Date(f64),
+    /// Wraps the `TabularData` `AnyValue.data` case.
     Data(String),
+    /// Wraps the `TabularData` `AnyValue.array` case.
     Array(Vec<Self>),
+    /// Wraps the `TabularData` `AnyValue.object` case.
     Object(BTreeMap<String, Self>),
 }
 
 impl AnyValue {
+    /// Wraps the `TabularData` `AnyValue.isNull` counterpart.
     #[must_use]
     pub const fn is_null(&self) -> bool {
         matches!(self, Self::Null)
     }
 
+    /// Wraps the `TabularData` `AnyValue.asStr` counterpart.
     #[must_use]
     pub fn as_str(&self) -> Option<&str> {
         match self {
@@ -40,6 +52,7 @@ impl AnyValue {
         }
     }
 
+    /// Wraps the `TabularData` `AnyValue.asBool` counterpart.
     #[must_use]
     pub const fn as_bool(&self) -> Option<bool> {
         match self {
@@ -48,6 +61,7 @@ impl AnyValue {
         }
     }
 
+    /// Wraps the `TabularData` `AnyValue.asI64` counterpart.
     #[must_use]
     pub const fn as_i64(&self) -> Option<i64> {
         match self {
@@ -56,6 +70,7 @@ impl AnyValue {
         }
     }
 
+    /// Wraps the `TabularData` `AnyValue.asF64` counterpart.
     #[must_use]
     pub fn as_f64(&self) -> Option<f64> {
         match self {
@@ -65,6 +80,7 @@ impl AnyValue {
         }
     }
 
+    /// Wraps the `TabularData` `AnyValue.typeName` counterpart.
     #[must_use]
     pub const fn type_name(&self) -> &'static str {
         match self {
@@ -80,11 +96,13 @@ impl AnyValue {
         }
     }
 
+    /// Wraps the `TabularData` `AnyValue.stableKey` counterpart.
     #[must_use]
     pub fn stable_key(&self) -> String {
         serde_json::to_string(self).unwrap_or_else(|_| format!("{self:?}"))
     }
 
+    /// Wraps the `TabularData` `AnyValue.equals` counterpart.
     #[must_use]
     pub fn equals(&self, other: &Self) -> bool {
         match (self.as_f64(), other.as_f64()) {
@@ -93,6 +111,7 @@ impl AnyValue {
         }
     }
 
+    /// Wraps the `TabularData` `AnyValue.partialCmp` counterpart.
     #[must_use]
     pub fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
         match (self, other) {
@@ -108,6 +127,7 @@ impl AnyValue {
         }
     }
 
+    /// Wraps the `TabularData` `AnyValue.contains` counterpart.
     #[must_use]
     pub fn contains(&self, needle: &Self) -> bool {
         match self {
@@ -169,15 +189,21 @@ impl From<f32> for AnyValue {
     }
 }
 
+/// Wraps the `TabularData` `AnyColumn` counterpart.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AnyColumn {
+    /// Wraps the `TabularData` `AnyColumn.name` counterpart.
     pub name: String,
+    /// Wraps the `TabularData` `AnyColumn.typeName` counterpart.
     pub type_name: String,
+    /// Wraps the `TabularData` `AnyColumn.missingCount` counterpart.
     pub missing_count: usize,
+    /// Wraps the `TabularData` `AnyColumn.values` counterpart.
     pub values: Vec<AnyValue>,
 }
 
 impl AnyColumn {
+    /// Wraps the `TabularData` `AnyColumn.init` counterpart.
     #[must_use]
     pub fn new(name: impl Into<String>, values: Vec<AnyValue>) -> Self {
         let missing_count = values.iter().filter(|value| value.is_null()).count();
@@ -193,26 +219,31 @@ impl AnyColumn {
         }
     }
 
+    /// Wraps the `TabularData` `AnyColumn.len` counterpart.
     #[must_use]
     pub fn len(&self) -> usize {
         self.values.len()
     }
 
+    /// Wraps the `TabularData` `AnyColumn.isEmpty` counterpart.
     #[must_use]
     pub fn is_empty(&self) -> bool {
         self.values.is_empty()
     }
 
+    /// Wraps the `TabularData` `AnyColumn.value` counterpart.
     #[must_use]
     pub fn value(&self, index: usize) -> Option<&AnyValue> {
         self.values.get(index)
     }
 
+    /// Wraps the `TabularData` `AnyColumn.isNil` counterpart.
     #[must_use]
     pub fn is_nil(&self, index: usize) -> bool {
         self.value(index).map_or(true, AnyValue::is_null)
     }
 
+    /// Wraps the `TabularData` `AnyColumn.slice` counterpart.
     #[must_use]
     pub fn slice(&self, range: std::ops::Range<usize>) -> ColumnSlice {
         let start = range.start.min(self.values.len());
@@ -227,6 +258,7 @@ impl AnyColumn {
         )
     }
 
+    /// Wraps the `TabularData` `AnyColumn.mask` counterpart.
     #[must_use]
     pub fn mask(&self, mask: &[bool]) -> ColumnSlice {
         let mut values = Vec::new();
@@ -246,6 +278,7 @@ impl AnyColumn {
         )
     }
 
+    /// Wraps the `TabularData` `AnyColumn.distinct` counterpart.
     #[must_use]
     pub fn distinct(&self) -> ColumnSlice {
         let mut seen = std::collections::BTreeSet::new();
@@ -267,15 +300,18 @@ impl AnyColumn {
         )
     }
 
+    /// Wraps the `TabularData` `AnyColumn.summary` counterpart.
     #[must_use]
     pub fn summary(&self) -> crate::summary::ColumnSummary {
         crate::summary::summarize_values(&self.values)
     }
 
+    /// Wraps the `TabularData` `AnyColumn.toColumn` counterpart.
     pub fn to_column(&self) -> Result<crate::column::Column, TabularDataError> {
         crate::column::Column::from_any_values(self.name.clone(), &self.type_name, &self.values)
     }
 
+    /// Wraps the `TabularData` `AnyColumn.min` counterpart.
     #[must_use]
     pub fn min(&self) -> Option<AnyValue> {
         self.values
@@ -285,6 +321,7 @@ impl AnyColumn {
             .min_by(|left, right| left.partial_cmp(right).unwrap_or(Ordering::Equal))
     }
 
+    /// Wraps the `TabularData` `AnyColumn.max` counterpart.
     #[must_use]
     pub fn max(&self) -> Option<AnyValue> {
         self.values
@@ -294,6 +331,7 @@ impl AnyColumn {
             .max_by(|left, right| left.partial_cmp(right).unwrap_or(Ordering::Equal))
     }
 
+    /// Wraps the `TabularData` `AnyColumn.argmin` counterpart.
     #[must_use]
     pub fn argmin(&self) -> Option<usize> {
         self.values
@@ -304,6 +342,7 @@ impl AnyColumn {
             .map(|(index, _)| index)
     }
 
+    /// Wraps the `TabularData` `AnyColumn.argmax` counterpart.
     #[must_use]
     pub fn argmax(&self) -> Option<usize> {
         self.values
@@ -314,18 +353,21 @@ impl AnyColumn {
             .map(|(index, _)| index)
     }
 
+    /// Wraps the `TabularData` `AnyColumn.sum` counterpart.
     #[must_use]
     pub fn sum(&self) -> Option<f64> {
         let values: Vec<f64> = self.values.iter().filter_map(AnyValue::as_f64).collect();
         (!values.is_empty()).then(|| values.iter().sum())
     }
 
+    /// Wraps the `TabularData` `AnyColumn.mean` counterpart.
     #[must_use]
     pub fn mean(&self) -> Option<f64> {
         let values: Vec<f64> = self.values.iter().filter_map(AnyValue::as_f64).collect();
         (!values.is_empty()).then(|| values.iter().sum::<f64>() / values.len() as f64)
     }
 
+    /// Wraps the `TabularData` `AnyColumn.standardDeviation` counterpart.
     #[must_use]
     pub fn standard_deviation(&self) -> Option<f64> {
         let values: Vec<f64> = self.values.iter().filter_map(AnyValue::as_f64).collect();
@@ -344,6 +386,7 @@ impl AnyColumn {
         Some(variance.sqrt())
     }
 
+    /// Wraps the `TabularData` `AnyColumn.description` counterpart.
     #[must_use]
     pub fn description(&self) -> String {
         format!(
@@ -363,6 +406,7 @@ impl std::fmt::Display for AnyColumn {
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.anyColumn` counterpart.
     pub fn any_column(&self, name: &str) -> Result<AnyColumn, TabularDataError> {
         let name = to_cstring(name)?;
         let mut error = core::ptr::null_mut();
@@ -375,6 +419,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.anyColumns` counterpart.
     pub fn any_columns(&self) -> Result<Vec<AnyColumn>, TabularDataError> {
         self.column_names()?
             .into_iter()

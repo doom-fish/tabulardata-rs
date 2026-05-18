@@ -5,13 +5,17 @@ use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 use crate::private::encode_json_cstring;
 
+/// Wraps join-column selections accepted by `TabularData` `DataFrame.joined` counterparts.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct JoinColumns {
+    /// Wraps the `TabularData` `JoinColumns.left` counterpart.
     pub left: String,
+    /// Wraps the `TabularData` `JoinColumns.right` counterpart.
     pub right: String,
 }
 
 impl JoinColumns {
+    /// Wraps the `TabularData` `JoinColumns.init` counterpart.
     #[must_use]
     pub fn new(left: impl Into<String>, right: impl Into<String>) -> Self {
         Self {
@@ -20,6 +24,7 @@ impl JoinColumns {
         }
     }
 
+    /// Wraps the `TabularData` `JoinColumns.same` counterpart.
     #[must_use]
     pub fn same(name: impl Into<String>) -> Self {
         let name = name.into();
@@ -49,6 +54,7 @@ struct JoinRequest {
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.joinedOn` counterpart.
     pub fn joined_on(
         &self,
         other: &Self,

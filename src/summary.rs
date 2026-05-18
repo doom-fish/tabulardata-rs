@@ -8,33 +8,53 @@ use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 use crate::private::encode_json_cstring;
 
+/// Wraps numeric summaries produced by `TabularData` `ColumnSummary` counterparts.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NumericSummary {
+    /// Wraps the `TabularData` `NumericSummary.someCount` counterpart.
     pub some_count: usize,
+    /// Wraps the `TabularData` `NumericSummary.noneCount` counterpart.
     pub none_count: usize,
+    /// Wraps the `TabularData` `NumericSummary.totalCount` counterpart.
     pub total_count: usize,
+    /// Wraps the `TabularData` `NumericSummary.mean` counterpart.
     pub mean: Option<f64>,
+    /// Wraps the `TabularData` `NumericSummary.standardDeviation` counterpart.
     pub standard_deviation: Option<f64>,
+    /// Wraps the `TabularData` `NumericSummary.min` counterpart.
     pub min: Option<f64>,
+    /// Wraps the `TabularData` `NumericSummary.max` counterpart.
     pub max: Option<f64>,
+    /// Wraps the `TabularData` `NumericSummary.median` counterpart.
     pub median: Option<f64>,
+    /// Wraps the `TabularData` `NumericSummary.firstQuartile` counterpart.
     pub first_quartile: Option<f64>,
+    /// Wraps the `TabularData` `NumericSummary.thirdQuartile` counterpart.
     pub third_quartile: Option<f64>,
 }
 
+/// Wraps categorical summaries produced by `TabularData` `ColumnSummary` counterparts.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct CategoricalSummary {
+    /// Wraps the `TabularData` `CategoricalSummary.someCount` counterpart.
     pub some_count: usize,
+    /// Wraps the `TabularData` `CategoricalSummary.noneCount` counterpart.
     pub none_count: usize,
+    /// Wraps the `TabularData` `CategoricalSummary.totalCount` counterpart.
     pub total_count: usize,
+    /// Wraps the `TabularData` `CategoricalSummary.uniqueCount` counterpart.
     pub unique_count: usize,
+    /// Wraps the `TabularData` `CategoricalSummary.mode` counterpart.
     pub mode: Vec<AnyValue>,
 }
 
+/// Wraps `TabularData` `ColumnSummary` counterparts.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", content = "value", rename_all = "snake_case")]
 pub enum ColumnSummary {
+    /// Wraps the `TabularData` `ColumnSummary.numeric` case.
     Numeric(NumericSummary),
+    /// Wraps the `TabularData` `ColumnSummary.categorical` case.
     Categorical(CategoricalSummary),
 }
 
@@ -130,10 +150,12 @@ fn percentile(sorted: &[f64], proportion: f64) -> Option<f64> {
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.summaryFrame` counterpart.
     pub fn summary_frame(&self) -> Result<Self, TabularDataError> {
         self.summary()
     }
 
+    /// Wraps the `TabularData` `DataFrame.summaryColumns` counterpart.
     pub fn summary_columns<S: AsRef<str>>(&self, columns: &[S]) -> Result<Self, TabularDataError> {
         let columns: Vec<String> = columns
             .iter()
@@ -152,6 +174,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.summaryIndices` counterpart.
     pub fn summary_indices(&self, indices: &[usize]) -> Result<Self, TabularDataError> {
         let indices = encode_json_cstring(&indices, "summary indices")?;
         let mut raw = core::ptr::null_mut();
@@ -166,6 +189,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.columnSummary` counterpart.
     pub fn column_summary(&self, name: &str) -> Result<ColumnSummary, TabularDataError> {
         Ok(self.any_column(name)?.summary())
     }

@@ -5,59 +5,75 @@ use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
 use crate::private::{decode_json, encode_json_cstring};
 
+/// Wraps formatting options accepted by `TabularData` `DataFrame` description counterparts.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct FormattingOptions {
+    /// Wraps the `TabularData` `FormattingOptions.maximumLineWidth` counterpart.
     pub maximum_line_width: Option<usize>,
+    /// Wraps the `TabularData` `FormattingOptions.maximumCellWidth` counterpart.
     pub maximum_cell_width: Option<usize>,
+    /// Wraps the `TabularData` `FormattingOptions.maximumRowCount` counterpart.
     pub maximum_row_count: Option<usize>,
+    /// Wraps the `TabularData` `FormattingOptions.includesColumnTypes` counterpart.
     pub includes_column_types: Option<bool>,
+    /// Wraps the `TabularData` `FormattingOptions.includesRowIndices` counterpart.
     pub includes_row_indices: Option<bool>,
+    /// Wraps the `TabularData` `FormattingOptions.includesRowAndColumnCounts` counterpart.
     pub includes_row_and_column_counts: Option<bool>,
+    /// Wraps the `TabularData` `FormattingOptions.locale` counterpart.
     pub locale: Option<String>,
 }
 
 impl FormattingOptions {
+    /// Wraps the `TabularData` `FormattingOptions.init` counterpart.
     #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
 
+    /// Wraps the `TabularData` `FormattingOptions.withMaximumLineWidth` counterpart.
     #[must_use]
     pub fn with_maximum_line_width(mut self, width: usize) -> Self {
         self.maximum_line_width = Some(width);
         self
     }
 
+    /// Wraps the `TabularData` `FormattingOptions.withMaximumCellWidth` counterpart.
     #[must_use]
     pub fn with_maximum_cell_width(mut self, width: usize) -> Self {
         self.maximum_cell_width = Some(width);
         self
     }
 
+    /// Wraps the `TabularData` `FormattingOptions.withMaximumRowCount` counterpart.
     #[must_use]
     pub fn with_maximum_row_count(mut self, count: usize) -> Self {
         self.maximum_row_count = Some(count);
         self
     }
 
+    /// Wraps the `TabularData` `FormattingOptions.withIncludesColumnTypes` counterpart.
     #[must_use]
     pub fn with_includes_column_types(mut self, includes: bool) -> Self {
         self.includes_column_types = Some(includes);
         self
     }
 
+    /// Wraps the `TabularData` `FormattingOptions.withIncludesRowIndices` counterpart.
     #[must_use]
     pub fn with_includes_row_indices(mut self, includes: bool) -> Self {
         self.includes_row_indices = Some(includes);
         self
     }
 
+    /// Wraps the `TabularData` `FormattingOptions.withIncludesRowAndColumnCounts` counterpart.
     #[must_use]
     pub fn with_includes_row_and_column_counts(mut self, includes: bool) -> Self {
         self.includes_row_and_column_counts = Some(includes);
         self
     }
 
+    /// Wraps the `TabularData` `FormattingOptions.withLocale` counterpart.
     #[must_use]
     pub fn with_locale(mut self, locale: impl Into<String>) -> Self {
         self.locale = Some(locale.into());
@@ -94,6 +110,7 @@ fn encode_formatting_options(
 }
 
 impl DataFrame {
+    /// Wraps the `TabularData` `DataFrame.description` counterpart.
     pub fn description(&self) -> Result<String, TabularDataError> {
         let mut error = core::ptr::null_mut();
         let payload = unsafe { ffi::td_dataframe_description(self.as_raw(), &mut error) };
@@ -104,6 +121,7 @@ impl DataFrame {
         }
     }
 
+    /// Wraps the `TabularData` `DataFrame.format` counterpart.
     pub fn format(&self, options: &FormattingOptions) -> Result<String, TabularDataError> {
         let options = encode_formatting_options(options)?;
         let mut error = core::ptr::null_mut();

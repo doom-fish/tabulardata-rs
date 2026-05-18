@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.6] - 2026-05-18
+
+- Added `///` docs across the public Rust wrapper surface, referencing the matching `TabularData` counterparts throughout `src/` (excluding `src/ffi/`).
+- Raised rustdoc item coverage from 0.3% to 84.2% while keeping the existing API surface unchanged.
+
 ## [0.2.5] - 2026-05-18
 
 - Widen apple-cf version bound to `<0.10` so 0.9.x resolves.
