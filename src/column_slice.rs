@@ -69,7 +69,7 @@ impl ColumnSlice {
     /// Wraps the `TabularData` `ColumnSlice.isNil` counterpart.
     #[must_use]
     pub fn is_nil(&self, index: usize) -> bool {
-        self.value(index).map_or(true, AnyValue::is_null)
+        self.value(index).is_none_or(AnyValue::is_null)
     }
 
     /// Wraps the `TabularData` `ColumnSlice.range` counterpart.
@@ -233,7 +233,7 @@ impl DataFrame {
                 name.as_ptr(),
                 range.start,
                 range.end,
-                &mut error,
+                &raw mut error,
             )
         };
         if payload.is_null() {
@@ -253,7 +253,7 @@ impl DataFrame {
                 self.as_raw(),
                 name.as_ptr(),
                 mask.as_ptr(),
-                &mut error,
+                &raw mut error,
             )
         };
         if payload.is_null() {

@@ -648,7 +648,7 @@ fn standard_deviation(values: &[f64]) -> Option<f64> {
 fn extremum(values: &[AnyValue], min: bool) -> Option<AnyValue> {
     let mut best: Option<&AnyValue> = None;
     for value in values.iter().filter(|value| !value.is_null()) {
-        let replace = best.map_or(true, |current| {
+        let replace = best.is_none_or(|current| {
             value.partial_cmp(current).is_some_and(|ordering| {
                 if min {
                     ordering.is_lt()
@@ -671,7 +671,7 @@ fn extremum_index(values: &[AnyValue], min: bool) -> Option<usize> {
         .enumerate()
         .filter(|(_, value)| !value.is_null())
     {
-        let replace = best.map_or(true, |(_, current)| {
+        let replace = best.is_none_or(|(_, current)| {
             value.partial_cmp(current).is_some_and(|ordering| {
                 if min {
                     ordering.is_lt()

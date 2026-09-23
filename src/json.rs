@@ -244,7 +244,7 @@ impl DataFrame {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_from_json_file(path.as_ptr(), request.as_ptr(), &mut raw, &mut error)
+            ffi::td_dataframe_from_json_file(path.as_ptr(), request.as_ptr(), &raw mut raw, &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(Self::from_raw(raw))
@@ -285,8 +285,8 @@ impl DataFrame {
             ffi::td_dataframe_from_json_data(
                 json_data.as_ptr(),
                 request.as_ptr(),
-                &mut raw,
-                &mut error,
+                &raw mut raw,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -306,7 +306,7 @@ impl DataFrame {
         let options = encode_json_write_options(options)?;
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_write_json(self.as_raw(), path.as_ptr(), options.as_ptr(), &mut error)
+            ffi::td_dataframe_write_json(self.as_raw(), path.as_ptr(), options.as_ptr(), &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(())
@@ -320,7 +320,7 @@ impl DataFrame {
         let options = encode_json_write_options(options)?;
         let mut error = core::ptr::null_mut();
         let payload = unsafe {
-            ffi::td_dataframe_json_data_json(self.as_raw(), options.as_ptr(), &mut error)
+            ffi::td_dataframe_json_data_json(self.as_raw(), options.as_ptr(), &raw mut error)
         };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))

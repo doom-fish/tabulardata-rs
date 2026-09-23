@@ -165,7 +165,7 @@ impl DataFrame {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_summary_columns(self.as_raw(), columns.as_ptr(), &mut raw, &mut error)
+            ffi::td_dataframe_summary_columns(self.as_raw(), columns.as_ptr(), &raw mut raw, &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(Self::from_raw(raw))
@@ -180,7 +180,7 @@ impl DataFrame {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_summary_indices(self.as_raw(), indices.as_ptr(), &mut raw, &mut error)
+            ffi::td_dataframe_summary_indices(self.as_raw(), indices.as_ptr(), &raw mut raw, &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(Self::from_raw(raw))

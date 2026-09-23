@@ -326,7 +326,7 @@ impl DataFrame {
     pub fn new() -> Result<Self, TabularDataError> {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
-        let status = unsafe { ffi::td_dataframe_new(&mut raw, &mut error) };
+        let status = unsafe { ffi::td_dataframe_new(&raw mut raw, &raw mut error) };
         if status == ffi::status::OK {
             Ok(Self { raw })
         } else {
@@ -358,7 +358,7 @@ impl DataFrame {
         let mut columns = 0;
         // SAFETY: We own the valid DataFrame handle and it's guaranteed valid by
         // the constructors (new(), from_csv(), etc.). The FFI call only reads metadata.
-        unsafe { ffi::td_dataframe_shape(self.raw, &mut rows, &mut columns) };
+        unsafe { ffi::td_dataframe_shape(self.raw, &raw mut rows, &raw mut columns) };
         (rows, columns)
     }
 
@@ -377,7 +377,7 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.columnNames` counterpart.
     pub fn column_names(&self) -> Result<Vec<String>, TabularDataError> {
         let mut error = core::ptr::null_mut();
-        let payload = unsafe { ffi::td_dataframe_column_names_json(self.raw, &mut error) };
+        let payload = unsafe { ffi::td_dataframe_column_names_json(self.raw, &raw mut error) };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
         } else {
@@ -395,9 +395,9 @@ impl DataFrame {
             ffi::td_dataframe_index_of_column(
                 self.raw,
                 name.as_ptr(),
-                &mut found,
-                &mut index,
-                &mut error,
+                &raw mut found,
+                &raw mut index,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -413,7 +413,7 @@ impl DataFrame {
         let mut contains = 0;
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_contains_column(self.raw, name.as_ptr(), &mut contains, &mut error)
+            ffi::td_dataframe_contains_column(self.raw, name.as_ptr(), &raw mut contains, &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(contains != 0)
@@ -437,8 +437,8 @@ impl DataFrame {
                 self.raw,
                 name.as_ptr(),
                 type_name.as_ptr(),
-                &mut contains,
-                &mut error,
+                &raw mut contains,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -453,7 +453,7 @@ impl DataFrame {
         let alias = to_cstring(alias)?;
         let mut error = core::ptr::null_mut();
         let payload = unsafe {
-            ffi::td_dataframe_column_names_for_alias_json(self.raw, alias.as_ptr(), &mut error)
+            ffi::td_dataframe_column_names_for_alias_json(self.raw, alias.as_ptr(), &raw mut error)
         };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
@@ -468,7 +468,7 @@ impl DataFrame {
         let column_name = to_cstring(column_name)?;
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_add_alias(self.raw, alias.as_ptr(), column_name.as_ptr(), &mut error)
+            ffi::td_dataframe_add_alias(self.raw, alias.as_ptr(), column_name.as_ptr(), &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(())
@@ -482,7 +482,7 @@ impl DataFrame {
         let alias = to_cstring(alias)?;
         let mut error = core::ptr::null_mut();
         let status =
-            unsafe { ffi::td_dataframe_remove_alias(self.raw, alias.as_ptr(), &mut error) };
+            unsafe { ffi::td_dataframe_remove_alias(self.raw, alias.as_ptr(), &raw mut error) };
         if status == ffi::status::OK {
             Ok(())
         } else {
@@ -496,7 +496,7 @@ impl DataFrame {
         let column = to_cstring(&column)?;
         let mut error = core::ptr::null_mut();
         let status =
-            unsafe { ffi::td_dataframe_append_column(self.raw, column.as_ptr(), &mut error) };
+            unsafe { ffi::td_dataframe_append_column(self.raw, column.as_ptr(), &raw mut error) };
         if status == ffi::status::OK {
             Ok(())
         } else {
@@ -510,7 +510,7 @@ impl DataFrame {
         let new_name = to_cstring(new_name)?;
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_rename_column(self.raw, name.as_ptr(), new_name.as_ptr(), &mut error)
+            ffi::td_dataframe_rename_column(self.raw, name.as_ptr(), new_name.as_ptr(), &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(())
@@ -523,7 +523,7 @@ impl DataFrame {
     pub fn column(&self, name: &str) -> Result<Column, TabularDataError> {
         let name = to_cstring(name)?;
         let mut error = core::ptr::null_mut();
-        let payload = unsafe { ffi::td_dataframe_column_json(self.raw, name.as_ptr(), &mut error) };
+        let payload = unsafe { ffi::td_dataframe_column_json(self.raw, name.as_ptr(), &raw mut error) };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
         } else {
@@ -534,7 +534,7 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.rowsJson` counterpart.
     pub fn rows_json(&self) -> Result<Vec<Value>, TabularDataError> {
         let mut error = core::ptr::null_mut();
-        let payload = unsafe { ffi::td_dataframe_rows_json(self.raw, &mut error) };
+        let payload = unsafe { ffi::td_dataframe_rows_json(self.raw, &raw mut error) };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
         } else {
@@ -546,7 +546,7 @@ impl DataFrame {
     pub fn summary(&self) -> Result<Self, TabularDataError> {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
-        let status = unsafe { ffi::td_dataframe_summary(self.raw, &mut raw, &mut error) };
+        let status = unsafe { ffi::td_dataframe_summary(self.raw, &raw mut raw, &raw mut error) };
         if status == ffi::status::OK {
             Ok(Self { raw })
         } else {
@@ -574,7 +574,7 @@ impl DataFrame {
         let options = encode_csv_write_options(options)?;
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_write_csv(self.raw, path.as_ptr(), options.as_ptr(), &mut error)
+            ffi::td_dataframe_write_csv(self.raw, path.as_ptr(), options.as_ptr(), &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(())

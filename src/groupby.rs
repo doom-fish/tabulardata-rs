@@ -282,8 +282,8 @@ impl GroupBy<'_> {
                 self.frame.as_raw(),
                 group.as_ptr(),
                 keys.as_ptr(),
-                &mut raw,
-                &mut error,
+                &raw mut raw,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -431,8 +431,8 @@ impl GroupBy<'_> {
                 self.frame.as_raw(),
                 group.as_ptr(),
                 aggregate.as_ptr(),
-                &mut raw,
-                &mut error,
+                &raw mut raw,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {

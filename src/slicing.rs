@@ -15,8 +15,8 @@ impl DataFrame {
                 self.as_raw(),
                 range.start,
                 range.end,
-                &mut raw,
-                &mut error,
+                &raw mut raw,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -31,7 +31,7 @@ impl DataFrame {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
         let status =
-            unsafe { ffi::td_dataframe_prefix_rows(self.as_raw(), len, &mut raw, &mut error) };
+            unsafe { ffi::td_dataframe_prefix_rows(self.as_raw(), len, &raw mut raw, &raw mut error) };
         if status == ffi::status::OK {
             Ok(Self::from_raw(raw))
         } else {
@@ -44,7 +44,7 @@ impl DataFrame {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
         let status =
-            unsafe { ffi::td_dataframe_suffix_rows(self.as_raw(), len, &mut raw, &mut error) };
+            unsafe { ffi::td_dataframe_suffix_rows(self.as_raw(), len, &raw mut raw, &raw mut error) };
         if status == ffi::status::OK {
             Ok(Self::from_raw(raw))
         } else {
@@ -65,8 +65,8 @@ impl DataFrame {
             ffi::td_dataframe_select_columns_json(
                 self.as_raw(),
                 columns.as_ptr(),
-                &mut raw,
-                &mut error,
+                &raw mut raw,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {

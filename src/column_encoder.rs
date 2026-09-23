@@ -58,7 +58,7 @@ impl DataFrame {
         )?;
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_encode_column_json(self.as_raw(), request.as_ptr(), &mut error)
+            ffi::td_dataframe_encode_column_json(self.as_raw(), request.as_ptr(), &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(())
@@ -84,7 +84,7 @@ impl DataFrame {
         )?;
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_decode_column_json(self.as_raw(), request.as_ptr(), &mut error)
+            ffi::td_dataframe_decode_column_json(self.as_raw(), request.as_ptr(), &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(())

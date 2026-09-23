@@ -240,7 +240,7 @@ impl AnyColumn {
     /// Wraps the `TabularData` `AnyColumn.isNil` counterpart.
     #[must_use]
     pub fn is_nil(&self, index: usize) -> bool {
-        self.value(index).map_or(true, AnyValue::is_null)
+        self.value(index).is_none_or(AnyValue::is_null)
     }
 
     /// Wraps the `TabularData` `AnyColumn.slice` counterpart.
@@ -411,7 +411,7 @@ impl DataFrame {
         let name = to_cstring(name)?;
         let mut error = core::ptr::null_mut();
         let payload =
-            unsafe { ffi::td_dataframe_any_column_json(self.as_raw(), name.as_ptr(), &mut error) };
+            unsafe { ffi::td_dataframe_any_column_json(self.as_raw(), name.as_ptr(), &raw mut error) };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
         } else {

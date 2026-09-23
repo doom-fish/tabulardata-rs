@@ -90,7 +90,7 @@ pub trait AnyColumnProtocol {
 
     /// Matches the `TabularData` `AnyColumnProtocol.isNil` requirement.
     fn is_nil(&self, index: usize) -> bool {
-        self.value(index).map_or(true, |value| value.is_null())
+        self.value(index).is_none_or(|value| value.is_null())
     }
 }
 

@@ -113,7 +113,7 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.description` counterpart.
     pub fn description(&self) -> Result<String, TabularDataError> {
         let mut error = core::ptr::null_mut();
-        let payload = unsafe { ffi::td_dataframe_description(self.as_raw(), &mut error) };
+        let payload = unsafe { ffi::td_dataframe_description(self.as_raw(), &raw mut error) };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
         } else {
@@ -126,7 +126,7 @@ impl DataFrame {
         let options = encode_formatting_options(options)?;
         let mut error = core::ptr::null_mut();
         let payload =
-            unsafe { ffi::td_dataframe_format_json(self.as_raw(), options.as_ptr(), &mut error) };
+            unsafe { ffi::td_dataframe_format_json(self.as_raw(), options.as_ptr(), &raw mut error) };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
         } else {

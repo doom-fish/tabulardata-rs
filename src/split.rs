@@ -34,9 +34,9 @@ impl DataFrame {
             ffi::td_dataframe_random_split(
                 self.as_raw(),
                 payload.as_ptr(),
-                &mut left,
-                &mut right,
-                &mut error,
+                &raw mut left,
+                &raw mut right,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
@@ -71,9 +71,9 @@ impl DataFrame {
             ffi::td_dataframe_stratified_split_json(
                 self.as_raw(),
                 payload.as_ptr(),
-                &mut left,
-                &mut right,
-                &mut error,
+                &raw mut left,
+                &raw mut right,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {

@@ -67,7 +67,7 @@ impl DataFrame {
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
         let status =
-            unsafe { ffi::td_dataframe_from_rows_json(rows.as_ptr(), &mut raw, &mut error) };
+            unsafe { ffi::td_dataframe_from_rows_json(rows.as_ptr(), &raw mut raw, &raw mut error) };
         if status == ffi::status::OK {
             Ok(Self::from_raw(raw))
         } else {
@@ -78,7 +78,7 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.row` counterpart.
     pub fn row(&self, index: usize) -> Result<AnyRow, TabularDataError> {
         let mut error = core::ptr::null_mut();
-        let payload = unsafe { ffi::td_dataframe_row_json(self.as_raw(), index, &mut error) };
+        let payload = unsafe { ffi::td_dataframe_row_json(self.as_raw(), index, &raw mut error) };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
         } else {
@@ -89,7 +89,7 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.rows` counterpart.
     pub fn rows(&self) -> Result<Vec<AnyRow>, TabularDataError> {
         let mut error = core::ptr::null_mut();
-        let payload = unsafe { ffi::td_dataframe_any_rows_json(self.as_raw(), &mut error) };
+        let payload = unsafe { ffi::td_dataframe_any_rows_json(self.as_raw(), &raw mut error) };
         if payload.is_null() {
             Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
         } else {
@@ -102,7 +102,7 @@ impl DataFrame {
         let row = encode_json_cstring(row, "row payload")?;
         let mut error = core::ptr::null_mut();
         let status =
-            unsafe { ffi::td_dataframe_append_row_json(self.as_raw(), row.as_ptr(), &mut error) };
+            unsafe { ffi::td_dataframe_append_row_json(self.as_raw(), row.as_ptr(), &raw mut error) };
         if status == ffi::status::OK {
             Ok(())
         } else {
@@ -115,7 +115,7 @@ impl DataFrame {
         let row = encode_json_cstring(row, "row payload")?;
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_insert_row_json(self.as_raw(), index, row.as_ptr(), &mut error)
+            ffi::td_dataframe_insert_row_json(self.as_raw(), index, row.as_ptr(), &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(())
@@ -129,7 +129,7 @@ impl DataFrame {
         let row = encode_json_cstring(row, "row payload")?;
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_replace_row_json(self.as_raw(), index, row.as_ptr(), &mut error)
+            ffi::td_dataframe_replace_row_json(self.as_raw(), index, row.as_ptr(), &raw mut error)
         };
         if status == ffi::status::OK {
             Ok(())
@@ -141,7 +141,7 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.appendEmptyRow` counterpart.
     pub fn append_empty_row(&mut self) -> Result<(), TabularDataError> {
         let mut error = core::ptr::null_mut();
-        let status = unsafe { ffi::td_dataframe_append_empty_row(self.as_raw(), &mut error) };
+        let status = unsafe { ffi::td_dataframe_append_empty_row(self.as_raw(), &raw mut error) };
         if status == ffi::status::OK {
             Ok(())
         } else {
@@ -152,7 +152,7 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.removeRow` counterpart.
     pub fn remove_row(&mut self, index: usize) -> Result<(), TabularDataError> {
         let mut error = core::ptr::null_mut();
-        let status = unsafe { ffi::td_dataframe_remove_row(self.as_raw(), index, &mut error) };
+        let status = unsafe { ffi::td_dataframe_remove_row(self.as_raw(), index, &raw mut error) };
         if status == ffi::status::OK {
             Ok(())
         } else {

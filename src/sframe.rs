@@ -136,8 +136,8 @@ impl DataFrame {
             ffi::td_dataframe_from_sframe_directory(
                 path.as_ptr(),
                 request.as_ptr(),
-                &mut raw,
-                &mut error,
+                &raw mut raw,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {

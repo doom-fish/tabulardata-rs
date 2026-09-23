@@ -75,8 +75,8 @@ impl DataFrame {
                 self.as_raw(),
                 other.as_raw(),
                 request.as_ptr(),
-                &mut raw,
-                &mut error,
+                &raw mut raw,
+                &raw mut error,
             )
         };
         if status == ffi::status::OK {
