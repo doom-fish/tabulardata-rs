@@ -9,7 +9,7 @@ description = "Safe Rust bindings for Apple's TabularData framework on macOS"
 authors = ["Per Johansson <per@doom.fish>"]
 keywords = ["tabulardata", "dataframe", "csv", "macos", "apple"]
 categories = ["api-bindings", "os::macos-apis"]
-rust-version = "1.76"
+rust-version = "1.82"
 readme = "README.md"
 build = "build.rs"
 include = [
@@ -38,7 +38,7 @@ name = "tabulardata"
 crate-type = ["lib"]
 
 [dependencies]
-apple-cf = { version = ">=0.4, <0.10", default-features = false }
+apple-cf = { path = "../apple-cf-rs", version = ">=0.11, <0.12", default-features = false }
 libc = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
