@@ -112,6 +112,24 @@ private func td_floating_source(
     return converted
 }
 
+private func td_require_int_sum_in_range(frame: DataFrame, column: String) throws {
+    var positive = 0
+    var negative = 0
+    for case let value? in frame[column].assumingType(Int.self) {
+        let overflow: Bool
+        if value >= 0 {
+            (positive, overflow) = positive.addingReportingOverflow(value)
+        } else {
+            (negative, overflow) = negative.addingReportingOverflow(value)
+        }
+        guard !overflow else {
+            throw td_invalid_argument(
+                "summing '\(column)' could overflow Int; convert the column to Double first"
+            )
+        }
+    }
+}
+
 private func td_group_aggregate(
     frame: DataFrame,
     spec: TDGroupBySpecPayload,
@@ -141,6 +159,7 @@ private func td_group_aggregate(
         }
         let grouping = try td_grouping(frame: frame, spec: spec)
         if type == Int.self {
+            try td_require_int_sum_in_range(frame: frame, column: column)
             return grouping.sums(column, Int.self, order: order)
         }
         if type == Double.self {

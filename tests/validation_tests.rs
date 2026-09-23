@@ -257,3 +257,43 @@ fn aliases_resolve_for_reads_but_not_as_alias_targets_or_row_keys() -> Result<()
     assert_eq!(frame.row_count(), 2);
     Ok(())
 }
+
+#[test]
+fn edge_split_proportions_non_ascii_csv_options_and_int_sum_overflow_are_errors_or_handled(
+) -> Result<(), TabularDataError> {
+    let frame = common::fixture_frame()?;
+    let (left, right) = frame.random_split(0.0, Some(1))?;
+    assert_eq!((left.row_count(), right.row_count()), (0, 4));
+    let (left, right) = frame.random_split(1.0, None)?;
+    assert_eq!((left.row_count(), right.row_count()), (4, 0));
+    let (left, right) = frame.stratified_split(&["team"], 0.0, Some(1))?;
+    assert_eq!((left.row_count(), right.row_count()), (0, 4));
+    let (left, right) = frame.stratified_split(&["team"], 1.0, Some(1))?;
+    assert_eq!((left.row_count(), right.row_count()), (4, 0));
+    assert_eq!(right.column_names()?, frame.column_names()?);
+    invalid(frame.random_split(1.5, None));
+    invalid(frame.stratified_split::<&str>(&[], 0.5, None));
+
+    invalid(DataFrame::from_csv_data(
+        "a§b\n1§2\n".as_bytes(),
+        CSVReadingOptions::new().with_delimiter('§'),
+    ));
+    invalid(DataFrame::from_csv_data(
+        b"a,b\n1,2\n",
+        CSVReadingOptions::new().with_escape_character('€'),
+    ));
+
+    let big = DataFrame::from_columns(&[
+        Column::strings("k", vec![Some("x".into()), Some("x".into())]),
+        Column::ints("v", vec![Some(i64::MAX), Some(1)]),
+    ])?;
+    let message = invalid(big.group_by(&["k"]).sums("v", GroupValueType::Int, None));
+    assert!(message.contains("overflow"), "{message}");
+    big.group_by(&["k"]).means("v", GroupValueType::Int, None)?;
+    let fine = DataFrame::from_columns(&[
+        Column::strings("k", vec![Some("x".into()), Some("y".into())]),
+        Column::ints("v", vec![Some(i64::MAX), Some(i64::MIN)]),
+    ])?;
+    fine.group_by(&["k"]).sums("v", GroupValueType::Int, None)?;
+    Ok(())
+}

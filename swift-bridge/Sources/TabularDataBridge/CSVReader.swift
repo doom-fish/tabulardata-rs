@@ -83,6 +83,14 @@ private func td_date_parser(_ payload: TDDateParseStrategyPayload) -> (String) -
 }
 
 private func td_csv_reading_options(_ payload: TDCSVReadingOptionsPayload) throws -> CSVReadingOptions {
+    let delimiter = try td_character(payload.delimiter, fieldName: "delimiter")
+    let escapeCharacter = try td_character(payload.escape_character, fieldName: "escape_character")
+    guard delimiter.asciiValue != nil else {
+        throw td_invalid_argument("delimiter must be an ASCII character")
+    }
+    guard escapeCharacter.asciiValue != nil else {
+        throw td_invalid_argument("escape_character must be an ASCII character")
+    }
     var options = CSVReadingOptions(
         hasHeaderRow: payload.has_header_row,
         nilEncodings: Set(payload.nil_encodings),
@@ -92,8 +100,8 @@ private func td_csv_reading_options(_ payload: TDCSVReadingOptionsPayload) throw
         ignoresEmptyLines: payload.ignores_empty_lines,
         usesQuoting: payload.uses_quoting,
         usesEscaping: payload.uses_escaping,
-        delimiter: try td_character(payload.delimiter, fieldName: "delimiter"),
-        escapeCharacter: try td_character(payload.escape_character, fieldName: "escape_character")
+        delimiter: delimiter,
+        escapeCharacter: escapeCharacter
     )
     options.dateParsers = payload.date_parse_strategies.map(td_date_parser)
     return options
