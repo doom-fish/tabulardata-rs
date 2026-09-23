@@ -1,5 +1,20 @@
 # tabulardata-rs coverage audit (vs MacOSX26.2.sdk)
 
+> **What these numbers measure.** COVERAGE_AUDIT.md (641, counting `init` and
+> `subscript` declarations in the MacOSX26.2 interface) and COVERAGE_AUDIT_V2.md
+> (484: 42 types plus 442 members, from a regex over `public` declarations)
+> count the same interface with different methods, which is why they disagree.
+> The MacOSX26.5 `TabularData.swiftinterface` has 744 `public` declaration
+> lines, 39 of them types. Neither file maps symbols one to one; the 100% is a
+> family-level judgement. Several listed wrappers are type aliases
+> (`DataFrameSlice = DataFrame`, `DataFrameRow = AnyRow`,
+> `DataFrameRows = Vec<AnyRow>`, `FilledColumn = Column`, and
+> `AnyColumnSlice` / `DiscontiguousColumnSlice = ColumnSlice`); the Rust types
+> are not generic; `ShapedData` and the `Column` / `ColumnSlice` statistics are
+> pure Rust; and closure-based Swift APIs (`filter`, `transformColumn`,
+> `combineColumns`, group filtering, mapping and random splits) are
+> reimplemented in Rust over JSON snapshots.
+
 SDK_PUBLIC_SYMBOLS: 641
 VERIFIED: 641
 GAPS: 0

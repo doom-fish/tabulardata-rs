@@ -1,6 +1,8 @@
-# tabulardata-rs v0.2.2 coverage
+# tabulardata-rs v0.3.0 coverage
 
-This document tracks the public Rust API shipped in `v0.2.2`, the matching Swift bridge area, and the validation artifacts that exercise it.
+This document tracks the public Rust API shipped in `v0.3.0`, the matching Swift bridge area, and the validation artifacts that exercise it. It lists Rust entry points, not TabularData symbols; see the caveat at the top of COVERAGE_AUDIT.md for what the audit percentages measure.
+
+Every name-taking operation checks its column names in the Swift bridge, and every appended value is converted to the column's element type or rejected, before TabularData is called; `validation_tests` covers these error paths.
 
 Status meanings:
 

@@ -1,5 +1,20 @@
 # tabulardata-rs coverage audit v2 (vs MacOSX26.2.sdk)
 
+> **What these numbers measure.** COVERAGE_AUDIT.md (641, counting `init` and
+> `subscript` declarations in the MacOSX26.2 interface) and COVERAGE_AUDIT_V2.md
+> (484: 42 types plus 442 members, from a regex over `public` declarations)
+> count the same interface with different methods, which is why they disagree.
+> The MacOSX26.5 `TabularData.swiftinterface` has 744 `public` declaration
+> lines, 39 of them types. Neither file maps symbols one to one; the 100% is a
+> family-level judgement. Several listed wrappers are type aliases
+> (`DataFrameSlice = DataFrame`, `DataFrameRow = AnyRow`,
+> `DataFrameRows = Vec<AnyRow>`, `FilledColumn = Column`, and
+> `AnyColumnSlice` / `DiscontiguousColumnSlice = ColumnSlice`); the Rust types
+> are not generic; `ShapedData` and the `Column` / `ColumnSlice` statistics are
+> pure Rust; and closure-based Swift APIs (`filter`, `transformColumn`,
+> `combineColumns`, group filtering, mapping and random splits) are
+> reimplemented in Rust over JSON snapshots.
+
 SDK_PUBLIC_SYMBOLS: 484
 VERIFIED: 484
 GAPS: 0
@@ -31,13 +46,13 @@ This audit enumerates all public declarations in TabularData.swiftinterface (arm
 | Row | struct | TabularData.swiftinterface | DataFrameRow (type alias to AnyRow) |
 | Rows | struct | TabularData.swiftinterface | DataFrameRows (type alias to Vec<AnyRow>) |
 | **GroupBy/Grouping family** | | | |
-| RowGroupingProtocol | protocol | TabularData.swiftinterface | RowGroupingProtocol trait |
+| RowGroupingProtocol | protocol | TabularData.swiftinterface | `GroupBy` (there is no Rust trait) |
 | RowGrouping | struct | TabularData.swiftinterface | GroupBy |
 | **Summary family** | | | |
 | AnyCategoricalSummary | struct | TabularData.swiftinterface | CategoricalSummary<T> |
 | CategoricalSummary | struct | TabularData.swiftinterface | CategoricalSummary<T> |
 | NumericSummary | struct | TabularData.swiftinterface | NumericSummary |
-| GroupSummaries | protocol | TabularData.swiftinterface | GroupSummaries trait |
+| GroupSummaries | protocol | TabularData.swiftinterface | `GroupSummaries` struct, built in Rust from per-group summary frames |
 | SummaryColumnIDs | enum | TabularData.swiftinterface | SummaryColumnIds enum |
 | **CSV family** | | | |
 | CSVReadingOptions | struct | TabularData.swiftinterface | CSVReadingOptions |
