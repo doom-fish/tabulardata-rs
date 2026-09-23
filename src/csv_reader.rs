@@ -126,15 +126,20 @@ impl DataFrame {
         data: &[u8],
         request: &CSVReadRequest,
     ) -> Result<Self, TabularDataError> {
-        let data = std::str::from_utf8(data).map_err(|_| {
+        std::str::from_utf8(data).map_err(|_| {
             TabularDataError::InvalidArgument("CSV data must be valid UTF-8".into())
         })?;
-        let data = crate::private::to_cstring(data)?;
         let request = encode_csv_read_request(request)?;
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            ffi::td_dataframe_from_csv_data(data.as_ptr(), request.as_ptr(), &raw mut raw, &raw mut error)
+            ffi::td_dataframe_from_csv_data(
+                data.as_ptr(),
+                data.len(),
+                request.as_ptr(),
+                &raw mut raw,
+                &raw mut error,
+            )
         };
         if status == ffi::status::OK {
             Ok(Self::from_raw(raw))

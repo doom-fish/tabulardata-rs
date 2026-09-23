@@ -215,6 +215,36 @@ fn append_and_rename_column_reject_bad_shapes_and_collisions() -> Result<(), Tab
 }
 
 #[test]
+fn json_bytes_are_raw_bytes_and_inputs_accept_any_utf8() -> Result<(), TabularDataError> {
+    let frame = common::fixture_frame()?.select_columns(&["id", "name"])?;
+    let options = JSONWritingOptions::new().with_sort_keys(true);
+    let bytes = frame.json_bytes(&options)?;
+    assert_eq!(bytes.first(), Some(&b'['));
+    assert_eq!(String::from_utf8(bytes.clone()).ok(), Some(frame.json_string(&options)?));
+    let round_trip = DataFrame::from_json_data(&bytes, JSONReadingOptions::new())?;
+    assert_eq!(round_trip.shape(), (4, 2));
+
+    let with_nul = DataFrame::from_csv_data(b"a,b\n1,x\0y\n2,z\n", CSVReadingOptions::new());
+    if let Ok(parsed) = with_nul {
+        assert_eq!(parsed.row_count(), 2);
+    }
+    invalid(DataFrame::from_csv_data(b"a\n\xFF\n", CSVReadingOptions::new()));
+    Ok(())
+}
+
+#[test]
+fn non_utf8_paths_are_rejected() {
+    use std::ffi::OsStr;
+    use std::os::unix::ffi::OsStrExt;
+    use std::path::Path;
+
+    let path = Path::new(OsStr::from_bytes(b"target/not-\xFF-utf8.csv"));
+    invalid(DataFrame::from_csv(path, CSVReadingOptions::new()));
+    let frame = common::fixture_frame().unwrap();
+    invalid(frame.write_csv(path, &CSVWritingOptions::new()));
+}
+
+#[test]
 fn aliases_resolve_for_reads_but_not_as_alias_targets_or_row_keys() -> Result<(), TabularDataError> {
     let mut frame = DataFrame::from_columns(&[Column::ints("id", vec![Some(2), Some(1)])])?;
     frame.add_alias("key", "id")?;

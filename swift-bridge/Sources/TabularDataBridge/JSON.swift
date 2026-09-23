@@ -143,13 +143,14 @@ public func td_dataframe_from_json_file(
 
 @_cdecl("td_dataframe_from_json_data")
 public func td_dataframe_from_json_data(
-    _ jsonData: UnsafePointer<CChar>?,
+    _ bytes: UnsafeRawPointer?,
+    _ length: Int,
     _ requestJSON: UnsafePointer<CChar>?,
     _ outFrame: UnsafeMutablePointer<UnsafeMutableRawPointer?>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> Int32 {
     outFrame.pointee = nil
-    guard let jsonData else {
+    guard let jsonData = td_data(bytes, length) else {
         td_write_error(errorOut, "JSON data must not be null")
         return TDR_INVALID_ARGUMENT
     }
@@ -157,7 +158,7 @@ public func td_dataframe_from_json_data(
     do {
         let request = try td_decode_json(requestJSON, as: TDJSONReadRequestPayload.self)
         let frame = try DataFrame(
-            jsonData: Data(String(cString: jsonData).utf8),
+            jsonData: jsonData,
             columns: request.columns,
             types: request.types.mapValues(td_json_type),
             options: td_json_reading_options(request.options)
@@ -198,12 +199,14 @@ public func td_dataframe_write_json(
     }
 }
 
-@_cdecl("td_dataframe_json_data_json")
-public func td_dataframe_json_data_json(
+@_cdecl("td_dataframe_json_data")
+public func td_dataframe_json_data(
     _ framePtr: UnsafeMutableRawPointer?,
     _ optionsJSON: UnsafePointer<CChar>?,
+    _ outLength: UnsafeMutablePointer<Int>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
-) -> UnsafeMutablePointer<CChar>? {
+) -> UnsafeMutableRawPointer? {
+    outLength.pointee = 0
     guard let frame = td_box(framePtr)?.frame else {
         td_write_error(errorOut, "data frame must not be null")
         return nil
@@ -215,7 +218,12 @@ public func td_dataframe_json_data_json(
             throw td_invalid_argument("JSON writing requires macOS 13 or newer")
         }
         let data = try frame.jsonRepresentation(options: td_json_writing_options(payload))
-        return td_string(td_codable_json_string(Array(data)))
+        guard let buffer = malloc(max(data.count, 1)) else {
+            throw td_invalid_argument("failed to allocate \(data.count) bytes for the JSON data")
+        }
+        data.copyBytes(to: buffer.assumingMemoryBound(to: UInt8.self), count: data.count)
+        outLength.pointee = data.count
+        return buffer
     } catch {
         td_write_error(errorOut, error.localizedDescription)
         return nil

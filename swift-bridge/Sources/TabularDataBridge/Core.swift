@@ -34,15 +34,28 @@ func td_box(_ ptr: UnsafeMutableRawPointer?) -> TDDataFrameBox? {
     return box
 }
 
+func td_data(_ bytes: UnsafeRawPointer?, _ length: Int) -> Data? {
+    guard length >= 0 else {
+        return nil
+    }
+    guard length > 0 else {
+        return Data()
+    }
+    guard let bytes else {
+        return nil
+    }
+    return Data(bytes: bytes, count: length)
+}
+
 @_cdecl("td_object_release")
 public func td_object_release(_ ptr: UnsafeMutableRawPointer?) {
     guard let ptr else { return }
     Unmanaged<AnyObject>.fromOpaque(ptr).release()
 }
 
-@inline(__always)
 func td_string(_ value: String) -> UnsafeMutablePointer<CChar>? {
-    value.withCString { strdup($0) }
+    let terminated = value.contains("\0") ? value.replacingOccurrences(of: "\0", with: "\\0") : value
+    return terminated.withCString { strdup($0) }
 }
 
 func td_codable_json_string<T: Encodable>(_ value: T) -> String {

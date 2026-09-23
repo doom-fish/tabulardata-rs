@@ -664,6 +664,9 @@ pub(crate) fn encode_csv_write_options(
 }
 
 pub(crate) fn path_to_cstring(path: impl AsRef<Path>) -> Result<CString, TabularDataError> {
-    let path = path.as_ref().to_string_lossy().into_owned();
-    to_cstring(&path)
+    let path = path.as_ref();
+    let path = path.to_str().ok_or_else(|| {
+        TabularDataError::InvalidArgument(format!("path is not valid UTF-8: {}", path.display()))
+    })?;
+    to_cstring(path)
 }

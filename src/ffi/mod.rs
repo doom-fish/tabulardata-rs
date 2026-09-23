@@ -17,7 +17,8 @@ unsafe extern "C" {
         error_out: *mut *mut c_char,
     ) -> i32;
     pub fn td_dataframe_from_csv_data(
-        data: *const c_char,
+        bytes: *const u8,
+        length: usize,
         request_json: *const c_char,
         out_frame: *mut *mut c_void,
         error_out: *mut *mut c_char,
@@ -29,7 +30,8 @@ unsafe extern "C" {
         error_out: *mut *mut c_char,
     ) -> i32;
     pub fn td_dataframe_from_json_data(
-        json_data: *const c_char,
+        bytes: *const u8,
+        length: usize,
         request_json: *const c_char,
         out_frame: *mut *mut c_void,
         error_out: *mut *mut c_char,
@@ -269,11 +271,12 @@ unsafe extern "C" {
         options_json: *const c_char,
         error_out: *mut *mut c_char,
     ) -> i32;
-    pub fn td_dataframe_json_data_json(
+    pub fn td_dataframe_json_data(
         frame: *mut c_void,
         options_json: *const c_char,
+        out_length: *mut usize,
         error_out: *mut *mut c_char,
-    ) -> *mut c_char;
+    ) -> *mut c_void;
     pub fn td_dataframe_append_rows_of(
         frame: *mut c_void,
         other: *mut c_void,

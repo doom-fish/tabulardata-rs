@@ -141,13 +141,14 @@ public func td_dataframe_from_csv(
 
 @_cdecl("td_dataframe_from_csv_data")
 public func td_dataframe_from_csv_data(
-    _ data: UnsafePointer<CChar>?,
+    _ bytes: UnsafeRawPointer?,
+    _ length: Int,
     _ requestJSON: UnsafePointer<CChar>?,
     _ outFrame: UnsafeMutablePointer<UnsafeMutableRawPointer?>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> Int32 {
     outFrame.pointee = nil
-    guard let data else {
+    guard let data = td_data(bytes, length) else {
         td_write_error(errorOut, "CSV data must not be null")
         return TDR_INVALID_ARGUMENT
     }
@@ -165,7 +166,7 @@ public func td_dataframe_from_csv_data(
             throw td_invalid_argument("rows must contain exactly two ascending bounds")
         }
         let frame = try DataFrame(
-            csvData: Data(String(cString: data).utf8),
+            csvData: data,
             columns: request.columns,
             rows: rowRange,
             types: request.types.mapValues(td_csv_type),

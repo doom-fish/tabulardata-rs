@@ -8,7 +8,7 @@ use crate::csv_writer::DateWriteStrategy;
 use crate::dataframe::{path_to_cstring, DataFrame};
 use crate::error::{from_swift, TabularDataError};
 use crate::ffi;
-use crate::private::{decode_json, encode_json_cstring, to_cstring};
+use crate::private::encode_json_cstring;
 
 /// Wraps `JSON`-reading errors surfaced by `TabularData` counterparts.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -274,16 +274,16 @@ impl DataFrame {
         data: &[u8],
         request: &JSONReadRequest,
     ) -> Result<Self, TabularDataError> {
-        let json_data = std::str::from_utf8(data).map_err(|_| {
+        std::str::from_utf8(data).map_err(|_| {
             TabularDataError::InvalidArgument("JSON data must be valid UTF-8".into())
         })?;
-        let json_data = to_cstring(json_data)?;
         let request = encode_json_read_request(request)?;
         let mut raw = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
         let status = unsafe {
             ffi::td_dataframe_from_json_data(
-                json_data.as_ptr(),
+                data.as_ptr(),
+                data.len(),
                 request.as_ptr(),
                 &raw mut raw,
                 &raw mut error,
@@ -318,15 +318,22 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.jsonBytes` counterpart.
     pub fn json_bytes(&self, options: &JSONWritingOptions) -> Result<Vec<u8>, TabularDataError> {
         let options = encode_json_write_options(options)?;
+        let mut length = 0;
         let mut error = core::ptr::null_mut();
-        let payload = unsafe {
-            ffi::td_dataframe_json_data_json(self.as_raw(), options.as_ptr(), &raw mut error)
+        let buffer = unsafe {
+            ffi::td_dataframe_json_data(
+                self.as_raw(),
+                options.as_ptr(),
+                &raw mut length,
+                &raw mut error,
+            )
         };
-        if payload.is_null() {
-            Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
-        } else {
-            decode_json(payload)
+        if buffer.is_null() {
+            return Err(from_swift(ffi::status::FRAMEWORK_ERROR, error));
         }
+        let bytes = unsafe { std::slice::from_raw_parts(buffer.cast::<u8>(), length) }.to_vec();
+        unsafe { libc::free(buffer) };
+        Ok(bytes)
     }
 
     /// Wraps the `TabularData` `DataFrame.jsonString` counterpart.
