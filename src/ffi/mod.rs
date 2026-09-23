@@ -274,6 +274,11 @@ unsafe extern "C" {
         options_json: *const c_char,
         error_out: *mut *mut c_char,
     ) -> *mut c_char;
+    pub fn td_dataframe_append_rows_of(
+        frame: *mut c_void,
+        other: *mut c_void,
+        error_out: *mut *mut c_char,
+    ) -> i32;
     pub fn td_dataframe_description(frame: *mut c_void, error_out: *mut *mut c_char)
         -> *mut c_char;
     pub fn td_dataframe_format_json(

@@ -10,36 +10,28 @@ func td_sort_order(_ raw: String) -> Order {
     raw == "descending" ? .descending : .ascending
 }
 
-private func td_compare_rows(
-    _ lhs: DataFrame.Row,
-    _ rhs: DataFrame.Row,
-    keys: [TDSortKeyPayload]
-) -> ComparisonResult {
+private struct TDSortColumn {
+    let descending: Bool
+    let values: [TDAnyValue]
+    let column: AnyColumn
+}
+
+private func td_compare_rows(_ lhs: Int, _ rhs: Int, keys: [TDSortColumn]) -> ComparisonResult {
     for key in keys {
-        let left = TDAnyValue.fromFoundation(lhs[key.column])
-        let right = TDAnyValue.fromFoundation(rhs[key.column])
+        let left = key.values[lhs]
+        let right = key.values[rhs]
         if td_any_value_equal(left, right) {
             continue
         }
         let comparison = td_any_value_compare(left, right)
-            ?? String(describing: lhs[key.column] ?? "").compare(String(describing: rhs[key.column] ?? ""))
-        switch key.order {
-        case "descending":
-            switch comparison {
-            case .orderedAscending:
-                return .orderedDescending
-            case .orderedDescending:
-                return .orderedAscending
-            case .orderedSame:
-                continue
-            @unknown default:
-                continue
-            }
-        default:
-            if comparison != .orderedSame {
-                return comparison
-            }
+            ?? String(describing: key.column[lhs] ?? "").compare(String(describing: key.column[rhs] ?? ""))
+        if comparison == .orderedSame {
+            continue
         }
+        if key.descending {
+            return comparison == .orderedAscending ? .orderedDescending : .orderedAscending
+        }
+        return comparison
     }
     return .orderedSame
 }
@@ -51,7 +43,7 @@ public func td_dataframe_sort_json(
     _ outFrame: UnsafeMutablePointer<UnsafeMutableRawPointer?>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> Int32 {
-    guard let box = td_box(framePtr) else {
+    guard let frame = td_box(framePtr)?.frame else {
         td_write_error(errorOut, "data frame must not be null")
         outFrame.pointee = nil
         return TDR_INVALID_ARGUMENT
@@ -62,21 +54,31 @@ public func td_dataframe_sort_json(
         guard !keys.isEmpty else {
             throw td_invalid_argument("at least one sort key is required")
         }
-        let columnNames = box.frame.columns.map(\.name)
-        let rows = Array(box.frame.rows.enumerated())
-        let sorted = rows.sorted { lhs, rhs in
-            let comparison = td_compare_rows(lhs.element, rhs.element, keys: keys)
+        try td_require_columns(keys.map(\.column), in: frame)
+        let sortColumns = keys.map { key -> TDSortColumn in
+            let column = frame[key.column]
+            return TDSortColumn(
+                descending: key.order == "descending",
+                values: column.map { TDAnyValue.fromFoundation($0) },
+                column: column
+            )
+        }
+        let order = frame.rows.indices.sorted { lhs, rhs in
+            let comparison = td_compare_rows(lhs, rhs, keys: sortColumns)
             if comparison == .orderedSame {
-                return lhs.offset < rhs.offset
+                return lhs < rhs
             }
             return comparison == .orderedAscending
         }
-        let rowDictionaries = sorted.map { td_row_dictionary($0.element, columnNames: columnNames) }
-        outFrame.pointee = td_retain(TDDataFrameBox(frame: td_frame(from: rowDictionaries, like: box.frame)))
+        var sorted = td_empty_frame(like: frame)
+        for index in order {
+            sorted.append(row: frame.rows[index])
+        }
+        outFrame.pointee = td_retain(TDDataFrameBox(frame: sorted))
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
         outFrame.pointee = nil
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }

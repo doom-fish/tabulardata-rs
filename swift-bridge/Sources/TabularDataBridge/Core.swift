@@ -70,6 +70,14 @@ func td_invalid_argument(_ message: String) -> NSError {
     ])
 }
 
+func td_status(for error: Error) -> Int32 {
+    let error = error as NSError
+    if error.domain == "tabulardata-rs", error.code == Int(TDR_INVALID_ARGUMENT) {
+        return TDR_INVALID_ARGUMENT
+    }
+    return TDR_FRAMEWORK_ERROR
+}
+
 func td_character(_ value: String, fieldName: String) throws -> Character {
     guard let character = value.first, value.count == 1 else {
         throw td_invalid_argument("\(fieldName) must be a single character")
@@ -342,6 +350,29 @@ enum TDAnyValue: Codable, Equatable {
         }
     }
 
+    var kindName: String {
+        switch self {
+        case .null:
+            return "null"
+        case .string:
+            return "string"
+        case .int:
+            return "int"
+        case .double:
+            return "double"
+        case .bool:
+            return "bool"
+        case .date:
+            return "date"
+        case .data:
+            return "data"
+        case .array:
+            return "array"
+        case .object:
+            return "object"
+        }
+    }
+
     var numericValue: Double? {
         switch self {
         case .int(let value):
@@ -516,18 +547,6 @@ func td_row_payload(_ row: DataFrame.Row) -> TDAnyRowPayload {
     return TDAnyRowPayload(index: row.index, values: values)
 }
 
-func td_row_dictionary(_ payload: TDAnyRowPayload) -> [String: Any?] {
-    payload.values.mapValues(\.cellObject)
-}
-
-func td_row_dictionary(_ row: DataFrame.Row, columnNames: [String]) -> [String: Any?] {
-    var object: [String: Any?] = [:]
-    for columnName in columnNames {
-        object[columnName] = row[columnName]
-    }
-    return object
-}
-
 func td_row_objects(_ frame: DataFrame) -> [[String: Any]] {
     let columnNames = frame.columns.map(\.name)
     return frame.rows.map { row in
@@ -542,12 +561,4 @@ func td_row_objects(_ frame: DataFrame) -> [[String: Any]] {
 func td_empty_frame(like frame: DataFrame) -> DataFrame {
     let columns = frame.columns.map { $0.prototype.makeColumn(capacity: 0) }
     return DataFrame(columns: columns)
-}
-
-func td_frame(from rowDictionaries: [[String: Any?]], like frame: DataFrame) -> DataFrame {
-    var result = td_empty_frame(like: frame)
-    for row in rowDictionaries {
-        result.append(valuesByColumn: row)
-    }
-    return result
 }

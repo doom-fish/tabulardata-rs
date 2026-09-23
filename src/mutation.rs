@@ -98,17 +98,15 @@ impl DataFrame {
 
     /// Wraps the `TabularData` `DataFrame.appendRowsOf` counterpart.
     pub fn append_rows_of(&mut self, other: &Self) -> Result<(), TabularDataError> {
-        let expected = self.column_names()?;
-        let actual = other.column_names()?;
-        if expected != actual {
-            return Err(TabularDataError::InvalidArgument(
-                "frames must have the same columns to append rows".into(),
-            ));
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            crate::ffi::td_dataframe_append_rows_of(self.as_raw(), other.as_raw(), &raw mut error)
+        };
+        if status == crate::ffi::status::OK {
+            Ok(())
+        } else {
+            Err(crate::error::from_swift(status, error))
         }
-        for row in other.rows()? {
-            self.append_row(&row)?;
-        }
-        Ok(())
     }
 
     /// Wraps the `TabularData` `DataFrame.appendFrame` counterpart.
@@ -305,7 +303,7 @@ impl DataFrame {
     }
 
     fn validate_column_length(&self, len: usize) -> Result<(), TabularDataError> {
-        if self.row_count() == 0 || self.row_count() == len {
+        if self.column_count() == 0 || self.row_count() == len {
             Ok(())
         } else {
             Err(TabularDataError::InvalidArgument(format!(

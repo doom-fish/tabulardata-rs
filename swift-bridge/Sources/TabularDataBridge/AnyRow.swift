@@ -1,39 +1,48 @@
 import Foundation
 import TabularData
 
-private func td_make_empty_column(name: String, sample: TDAnyValue) throws -> AnyColumn {
-    switch sample {
-    case .null, .string:
+private func td_inferred_column(name: String, values: [TDAnyValue]) throws -> AnyColumn {
+    var kinds = Set(values.map(\.kindName))
+    kinds.remove("null")
+    if kinds == ["int", "double"] {
+        kinds = ["double"]
+    }
+    guard kinds.count <= 1 else {
+        throw td_invalid_argument(
+            "column '\(name)' mixes \(kinds.sorted().joined(separator: " and ")) values"
+        )
+    }
+    switch kinds.first ?? "string" {
+    case "string":
         return Column<String>(name: name, capacity: 0).eraseToAnyColumn()
-    case .int:
+    case "int":
         return Column<Int>(name: name, capacity: 0).eraseToAnyColumn()
-    case .double:
+    case "double":
         return Column<Double>(name: name, capacity: 0).eraseToAnyColumn()
-    case .bool:
+    case "bool":
         return Column<Bool>(name: name, capacity: 0).eraseToAnyColumn()
-    case .date:
+    case "date":
         return Column<Date>(name: name, capacity: 0).eraseToAnyColumn()
-    case .data:
+    case "data":
         return Column<Data>(name: name, capacity: 0).eraseToAnyColumn()
-    case .array, .object:
+    default:
         throw td_invalid_argument("from_rows supports scalar, date, and data cell values only")
     }
 }
 
 private func td_frame_from_payload_rows(_ rows: [TDAnyRowPayload]) throws -> DataFrame {
-    guard !rows.isEmpty else {
+    let columnNames = Array(Set(rows.flatMap { $0.values.keys })).sorted()
+    guard !columnNames.isEmpty else {
         return DataFrame()
     }
 
-    let columnNames = Array(Set(rows.flatMap { $0.values.keys })).sorted()
-    let columns = try columnNames.map { columnName -> AnyColumn in
-        let sample = rows.compactMap { $0.values[columnName] }.first(where: { $0 != .null }) ?? .null
-        return try td_make_empty_column(name: columnName, sample: sample)
+    let columns = try columnNames.map { columnName in
+        try td_inferred_column(name: columnName, values: rows.map { $0.values[columnName] ?? .null })
     }
 
     var frame = DataFrame(columns: columns)
     for row in rows {
-        frame.append(valuesByColumn: td_row_dictionary(row))
+        frame.append(valuesByColumn: try td_typed_row(row.values, for: frame))
     }
     return frame
 }
@@ -52,7 +61,7 @@ public func td_dataframe_from_rows_json(
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
 
@@ -99,11 +108,11 @@ public func td_dataframe_append_row_json(
 
     do {
         let row = try td_decode_json(rowJSON, as: TDAnyRowPayload.self)
-        box.frame.append(valuesByColumn: td_row_dictionary(row))
+        box.frame.append(valuesByColumn: try td_typed_row(row.values, for: box.frame))
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
 
@@ -124,14 +133,12 @@ public func td_dataframe_insert_row_json(
             throw td_invalid_argument("row index out of bounds")
         }
         let row = try td_decode_json(rowJSON, as: TDAnyRowPayload.self)
-        let columnNames = box.frame.columns.map(\.name)
-        var rows = box.frame.rows.map { td_row_dictionary($0, columnNames: columnNames) }
-        rows.insert(td_row_dictionary(row), at: index)
-        box.frame = td_frame(from: rows, like: box.frame)
+        let single = try td_single_row_frame(row.values, like: box.frame)
+        box.frame.insert(row: single.rows[0], at: index)
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
 
@@ -152,14 +159,13 @@ public func td_dataframe_replace_row_json(
             throw td_invalid_argument("row index out of bounds")
         }
         let row = try td_decode_json(rowJSON, as: TDAnyRowPayload.self)
-        let columnNames = box.frame.columns.map(\.name)
-        var rows = box.frame.rows.map { td_row_dictionary($0, columnNames: columnNames) }
-        rows[index] = td_row_dictionary(row)
-        box.frame = td_frame(from: rows, like: box.frame)
+        let single = try td_single_row_frame(row.values, like: box.frame)
+        box.frame.removeRow(at: index)
+        box.frame.insert(row: single.rows[0], at: index)
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
 

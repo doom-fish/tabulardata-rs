@@ -44,7 +44,7 @@ public func td_dataframe_random_split(
         td_write_error(errorOut, error.localizedDescription)
         outLeft.pointee = nil
         outRight.pointee = nil
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
 
@@ -66,6 +66,9 @@ public func td_dataframe_stratified_split_json(
     do {
         let payload = try td_decode_json(splitJSON, as: TDStratifiedSplitPayload.self)
         try td_validate_split_proportion(payload.proportion)
+        try td_require_columns(payload.columns, in: frame)
+        try td_require_unique_columns(payload.columns, context: "the stratified split")
+        try td_require_scalar_columns(payload.columns, in: frame, purpose: "a stratified split")
         let split: (DataFrame, DataFrame)
         switch payload.columns.count {
         case 1:
@@ -99,6 +102,6 @@ public func td_dataframe_stratified_split_json(
         td_write_error(errorOut, error.localizedDescription)
         outLeft.pointee = nil
         outRight.pointee = nil
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }

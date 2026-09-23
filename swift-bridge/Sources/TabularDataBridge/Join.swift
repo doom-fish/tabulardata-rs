@@ -40,14 +40,20 @@ public func td_dataframe_join_json(
 
     do {
         let request = try td_decode_json(joinJSON, as: TDJoinRequestPayload.self)
+        let leftType = try td_column_type(request.columns.left, in: frame, label: "the left frame")
+        let rightType = try td_column_type(request.columns.right, in: other, label: "the right frame")
+        guard leftType == rightType else {
+            throw td_invalid_argument(
+                "join columns must have the same type: '\(request.columns.left)' holds \(td_type_label(leftType)) values and '\(request.columns.right)' holds \(td_type_label(rightType)) values"
+            )
+        }
+        guard td_is_scalar_type(leftType) else {
+            throw td_invalid_argument(
+                "join columns must hold scalar values; '\(request.columns.left)' holds \(td_type_label(leftType)) values"
+            )
+        }
         let joined: DataFrame
         if request.columns.left == request.columns.right {
-            guard frame.indexOfColumn(request.columns.left) != nil else {
-                throw td_invalid_argument("left frame is missing column '\(request.columns.left)'")
-            }
-            guard other.indexOfColumn(request.columns.right) != nil else {
-                throw td_invalid_argument("right frame is missing column '\(request.columns.right)'")
-            }
             joined = frame.joined(other, on: request.columns.left, kind: td_join_kind(request.kind))
         } else {
             joined = frame.joined(
@@ -61,6 +67,6 @@ public func td_dataframe_join_json(
     } catch {
         td_write_error(errorOut, error.localizedDescription)
         outFrame.pointee = nil
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }

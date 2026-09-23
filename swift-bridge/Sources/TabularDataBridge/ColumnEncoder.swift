@@ -8,10 +8,36 @@ private struct TDColumnCodingRequestPayload: Codable {
     var codec: String
 }
 
+private func td_coding_element_type(_ name: String) throws -> Any.Type {
+    switch name {
+    case "string":
+        return String.self
+    case "int":
+        return Int.self
+    case "double":
+        return Double.self
+    case "bool":
+        return Bool.self
+    case "date":
+        return Date.self
+    case "data":
+        return Data.self
+    default:
+        throw td_invalid_argument("unsupported element type '\(name)'")
+    }
+}
+
 private func td_encode_column(
     frame: inout DataFrame,
     request: TDColumnCodingRequestPayload
 ) throws {
+    let columnType = try td_column_type(request.column, in: frame)
+    let requested = try td_coding_element_type(request.element_type)
+    guard columnType == requested else {
+        throw td_invalid_argument(
+            "column '\(request.column)' holds \(td_type_label(columnType)) values, not \(td_type_label(requested))"
+        )
+    }
     switch (request.element_type, request.codec) {
     case ("string", "json"):
         try frame.encodeColumn(request.column, String.self, using: JSONEncoder())
@@ -46,6 +72,13 @@ private func td_decode_column(
     frame: inout DataFrame,
     request: TDColumnCodingRequestPayload
 ) throws {
+    let columnType = try td_column_type(request.column, in: frame)
+    _ = try td_coding_element_type(request.element_type)
+    guard columnType == Data.self else {
+        throw td_invalid_argument(
+            "column '\(request.column)' holds \(td_type_label(columnType)) values; only encoded Data columns can be decoded"
+        )
+    }
     switch (request.element_type, request.codec) {
     case ("string", "json"):
         try frame.decode(String.self, inColumn: request.column, using: JSONDecoder())
@@ -93,7 +126,7 @@ public func td_dataframe_encode_column_json(
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
 
@@ -114,6 +147,6 @@ public func td_dataframe_decode_column_json(
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }

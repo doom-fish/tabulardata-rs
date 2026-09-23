@@ -2,10 +2,18 @@ import Foundation
 import TabularData
 
 private final class TDFilterBox: Codable {
-    var filter: TDFilterPayload
+    let filter: TDFilterPayload
 
     init(filter: TDFilterPayload) {
         self.filter = filter
+    }
+
+    init(from decoder: Decoder) throws {
+        filter = try TDFilterPayload(from: decoder)
+    }
+
+    func encode(to encoder: Encoder) throws {
+        try filter.encode(to: encoder)
     }
 }
 
@@ -96,6 +104,17 @@ private func td_matches(_ row: DataFrame.Row, filter: TDFilterPayload) throws ->
     }
 }
 
+private func td_filter_columns(_ filter: TDFilterPayload) -> [String] {
+    var columns = filter.column.map { [$0] } ?? []
+    for nested in filter.filters ?? [] {
+        columns.append(contentsOf: td_filter_columns(nested))
+    }
+    if let nested = filter.filter {
+        columns.append(contentsOf: td_filter_columns(nested.filter))
+    }
+    return columns
+}
+
 @_cdecl("td_dataframe_filter_json")
 public func td_dataframe_filter_json(
     _ framePtr: UnsafeMutableRawPointer?,
@@ -111,12 +130,13 @@ public func td_dataframe_filter_json(
 
     do {
         let filter = try td_decode_json(filterJSON, as: TDFilterPayload.self)
+        try td_require_columns(td_filter_columns(filter), in: box.frame)
         let slice = try box.frame.filter { try td_matches($0, filter: filter) }
         outFrame.pointee = td_retain(TDDataFrameBox(frame: DataFrame(slice)))
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
         outFrame.pointee = nil
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }

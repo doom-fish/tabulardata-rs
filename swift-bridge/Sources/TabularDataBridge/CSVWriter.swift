@@ -73,7 +73,7 @@ public func td_dataframe_write_csv(
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
 

@@ -69,11 +69,13 @@ public func td_dataframe_select_columns_json(
 
     do {
         let columns = try td_decode_json(columnsJSON, as: [String].self)
+        try td_require_columns(columns, in: box.frame)
+        try td_require_unique_columns(columns, context: "the column selection")
         outFrame.pointee = td_retain(TDDataFrameBox(frame: box.frame.selecting(columnNames: columns)))
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
         outFrame.pointee = nil
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }

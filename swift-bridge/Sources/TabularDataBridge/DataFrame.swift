@@ -283,7 +283,7 @@ public func td_dataframe_add_alias(
     }
 
     let name = String(cString: columnName)
-    guard box.frame.indexOfColumn(name) != nil else {
+    guard box.frame.columns.contains(where: { $0.name == name }) else {
         td_write_error(errorOut, "there is no column named '\(name)'")
         return TDR_INVALID_ARGUMENT
     }
@@ -321,11 +321,19 @@ public func td_dataframe_append_column(
 
     do {
         let payload = try td_decode_json(columnJSON, as: TDColumnPayload.self)
+        guard box.frame.indexOfColumn(payload.name) == nil else {
+            throw td_invalid_argument("there is already a column named '\(payload.name)'")
+        }
+        guard box.frame.columns.isEmpty || payload.values.count == box.frame.rows.count else {
+            throw td_invalid_argument(
+                "column '\(payload.name)' has \(payload.values.count) values but the data frame has \(box.frame.rows.count) rows"
+            )
+        }
         box.frame.append(column: try td_make_any_column(payload))
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
 
@@ -346,8 +354,13 @@ public func td_dataframe_rename_column(
         td_write_error(errorOut, "there is no column named '\(columnName)'")
         return TDR_INVALID_ARGUMENT
     }
+    let newName = String(cString: newNamePtr)
+    guard newName == columnName || box.frame.indexOfColumn(newName) == nil else {
+        td_write_error(errorOut, "there is already a column named '\(newName)'")
+        return TDR_INVALID_ARGUMENT
+    }
 
-    box.frame.renameColumn(columnName, to: String(cString: newNamePtr))
+    box.frame.renameColumn(columnName, to: newName)
     return TDR_OK
 }
 
@@ -387,4 +400,43 @@ public func td_dataframe_rows_json(
     }
 
     return td_string(td_json_string(td_row_objects(frame)))
+}
+
+@_cdecl("td_dataframe_append_rows_of")
+public func td_dataframe_append_rows_of(
+    _ framePtr: UnsafeMutableRawPointer?,
+    _ otherPtr: UnsafeMutableRawPointer?,
+    _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
+) -> Int32 {
+    guard let box = td_box(framePtr), let other = td_box(otherPtr)?.frame else {
+        td_write_error(errorOut, "data frames must not be null")
+        return TDR_INVALID_ARGUMENT
+    }
+
+    do {
+        let names = box.frame.columns.map(\.name)
+        guard names == other.columns.map(\.name) else {
+            throw td_invalid_argument("frames must have the same columns to append rows")
+        }
+        let sameTypes = zip(box.frame.columns, other.columns).allSatisfy {
+            $0.wrappedElementType == $1.wrappedElementType
+        }
+        if sameTypes {
+            box.frame.append(rowsOf: other)
+            return TDR_OK
+        }
+        var appended = box.frame
+        for row in other.rows {
+            let values = Dictionary(
+                names.map { ($0, TDAnyValue.fromFoundation(row[$0])) },
+                uniquingKeysWith: { first, _ in first }
+            )
+            appended.append(valuesByColumn: try td_typed_row(values, for: appended))
+        }
+        box.frame = appended
+        return TDR_OK
+    } catch {
+        td_write_error(errorOut, error.localizedDescription)
+        return td_status(for: error)
+    }
 }

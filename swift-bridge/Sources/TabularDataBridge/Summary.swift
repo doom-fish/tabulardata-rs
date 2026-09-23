@@ -32,13 +32,15 @@ public func td_dataframe_summary_columns(
 
     do {
         let columns = try td_decode_json(columnsJSON, as: [String].self)
+        try td_require_columns(columns, in: box.frame)
+        try td_require_unique_columns(columns, context: "the summary")
         let summary = box.frame.selecting(columnNames: columns).summary()
         outFrame.pointee = td_retain(TDDataFrameBox(frame: summary))
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
         outFrame.pointee = nil
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
 
@@ -63,12 +65,13 @@ public func td_dataframe_summary_indices(
             }
             return box.frame.columns[index].name
         }
+        try td_require_unique_columns(names, context: "the summary")
         let summary = box.frame.selecting(columnNames: names).summary()
         outFrame.pointee = td_retain(TDDataFrameBox(frame: summary))
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
         outFrame.pointee = nil
-        return TDR_FRAMEWORK_ERROR
+        return td_status(for: error)
     }
 }
