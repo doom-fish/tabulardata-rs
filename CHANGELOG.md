@@ -1,5 +1,36 @@
 # Changelog
 
+All notable changes to `tabulardata-rs` are documented here.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [0.3.0] - Unreleased
+
+### Security
+
+- Unknown column names no longer reach `TabularData`'s `fatalError`, which aborted the process, in filters, sorts, selections, summaries, joins, groupings, group lookups, stratified splits and column encoding; they return `InvalidArgument`.
+- Appended, inserted and replaced rows, `from_rows` and `append_rows_of` no longer hit `TabularData`'s element-type traps: every value is converted to its column's element type or rejected, and every column is filled.
+- Group aggregates on the wrong element type, time grouping on a non-Date column, joins with mismatched key types, renames onto an existing name, encoding or decoding a column of the wrong type, aliasing an alias, split proportions of exactly 0 or 1, non-ASCII CSV delimiters or escape characters, and overflowing Int group sums no longer abort the process.
+
+### Fixed
+
+- Group means and quantiles work on Int columns (converted to Double); sums, minimums and maximums follow the column's element type; group lookup keys are converted to the grouping column types; quantiles outside 0...1 are rejected.
+- `append_column` rejects a wrong length or a duplicate name, and `rename_column` rejects a collision. `insert_column` and `replace_column` also check frames that have columns but no rows.
+- Float and Int32 columns round-trip through `AnyRow`; `from_rows` widens mixed Int and Double columns to Double and rejects other mixtures.
+- `Filter::negate` works; the bridge expected a doubly nested payload and always failed to decode it.
+- CSV and JSON input keeps interior NUL bytes, and bridge error messages escape interior NULs instead of being cut short.
+- Paths that are not valid UTF-8 are rejected instead of being converted lossily.
+- The coverage audits explain their conflicting symbol counts (641 and 484) and what their 100% means.
+- New `validation_tests` cover the error paths.
+
+### Changed
+
+- `sorted_by` converts each key column once and rebuilds the frame with `append(row:)`; `insert_row` and `replace_row` insert one row instead of rebuilding the frame; `append_rows_of` uses `append(rowsOf:)` when the schemas match; `json_bytes` returns the bytes directly instead of a JSON array of integers; CSV and JSON input is passed as bytes instead of three string copies.
+- **Breaking:** validation failures report `TabularDataError::InvalidArgument`; several bridge errors that used to report `FrameworkError` now report `InvalidArgument`.
+- **Breaking:** raw FFI: `td_dataframe_from_csv_data` and `td_dataframe_from_json_data` take a byte pointer and length, `td_dataframe_json_data_json` is replaced by `td_dataframe_json_data`, and `td_dataframe_append_rows_of` is new.
+- Requires `apple-cf` 0.11; `rust-version` is 1.82.
+
 ## [0.2.6] - 2026-05-18
 
 - Added `///` docs across the public Rust wrapper surface, referencing the matching `TabularData` counterparts throughout `src/` (excluding `src/ffi/`).

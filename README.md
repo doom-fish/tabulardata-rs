@@ -24,7 +24,7 @@ Safe, idiomatic Rust bindings for Apple's [TabularData](https://developer.apple.
 
 ```toml
 [dependencies]
-tabulardata-rs = "0.2.2"
+tabulardata-rs = "0.3.0"
 ```
 
 ```rust,no_run

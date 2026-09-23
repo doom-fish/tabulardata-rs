@@ -42,8 +42,8 @@ Status meanings:
 
 ## Validation run for this matrix
 
-The v0.2.2 matrix above was validated with:
+The v0.3.0 matrix above was validated with:
 
-- `cargo test -- --test-threads=1`
-- `cargo clippy --all-targets -- -D warnings`
+- `cargo test --all-features`
+- `cargo clippy --all-targets --all-features -- -D warnings`
 - `for ex in examples/*.rs; do cargo run --example "$(basename "$ex" .rs)"; done`
