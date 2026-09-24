@@ -226,20 +226,22 @@ impl DataFrame {
         range: Range<usize>,
     ) -> Result<ColumnSlice, TabularDataError> {
         let name = to_cstring(name)?;
+        let mut payload = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
-        let payload = unsafe {
+        let status = unsafe {
             ffi::td_dataframe_column_slice_json(
                 self.as_raw(),
                 name.as_ptr(),
                 range.start,
                 range.end,
+                &raw mut payload,
                 &raw mut error,
             )
         };
-        if payload.is_null() {
-            Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
-        } else {
+        if status == ffi::status::OK {
             crate::private::decode_json(payload)
+        } else {
+            Err(from_swift(status, error))
         }
     }
 
@@ -247,19 +249,21 @@ impl DataFrame {
     pub fn column_mask(&self, name: &str, mask: &[bool]) -> Result<ColumnSlice, TabularDataError> {
         let name = to_cstring(name)?;
         let mask = encode_json_cstring(&mask, "column mask")?;
+        let mut payload = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
-        let payload = unsafe {
+        let status = unsafe {
             ffi::td_dataframe_column_mask_json(
                 self.as_raw(),
                 name.as_ptr(),
                 mask.as_ptr(),
+                &raw mut payload,
                 &raw mut error,
             )
         };
-        if payload.is_null() {
-            Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
-        } else {
+        if status == ffi::status::OK {
             crate::private::decode_json(payload)
+        } else {
+            Err(from_swift(status, error))
         }
     }
 }

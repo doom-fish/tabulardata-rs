@@ -357,7 +357,7 @@ fn transform_column_keeps_each_element_type() -> Result<(), TabularDataError> {
     invalid(frame.transform_column("bool", |_| AnyValue::Int(1)));
     invalid(frame.transform_column("data", |_| AnyValue::from("not base64")));
     invalid(frame.transform_column("tags", |_| AnyValue::from("x")));
-    assert!(frame.transform_column("nope", Clone::clone).is_err());
+    invalid(frame.transform_column("nope", Clone::clone));
     assert_eq!(frame.any_columns()?, before);
     Ok(())
 }

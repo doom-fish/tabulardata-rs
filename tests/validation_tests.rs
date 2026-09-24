@@ -28,6 +28,16 @@ fn column_name_typos_are_errors_in_every_operation() -> Result<(), TabularDataEr
     invalid(frame.select_columns(&["name", "nmae"]));
     invalid(frame.select_columns(&["name", "name"]));
     invalid(frame.summary_columns(&["nope"]));
+    let message = invalid(frame.column("nmae"));
+    assert!(message.contains("'nmae'"), "{message}");
+    invalid(frame.any_column("nmae"));
+    invalid(frame.column_slice("nmae", 0..1));
+    invalid(frame.column_mask("nmae", &[true; 4]));
+    invalid(frame.column_mask("name", &[true]));
+    let message = invalid(frame.row(4));
+    assert!(message.contains("out of bounds"), "{message}");
+    invalid(frame.row(usize::MAX));
+    invalid(frame.column_at(7));
 
     invalid(frame.joined(&other, "idd", JoinKind::Inner));
     invalid(frame.joined_on(&other, JoinColumns::new("id", "employe_id"), JoinKind::Left));

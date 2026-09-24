@@ -409,13 +409,20 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.anyColumn` counterpart.
     pub fn any_column(&self, name: &str) -> Result<AnyColumn, TabularDataError> {
         let name = to_cstring(name)?;
+        let mut payload = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
-        let payload =
-            unsafe { ffi::td_dataframe_any_column_json(self.as_raw(), name.as_ptr(), &raw mut error) };
-        if payload.is_null() {
-            Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
-        } else {
+        let status = unsafe {
+            ffi::td_dataframe_any_column_json(
+                self.as_raw(),
+                name.as_ptr(),
+                &raw mut payload,
+                &raw mut error,
+            )
+        };
+        if status == ffi::status::OK {
             crate::private::decode_json(payload)
+        } else {
+            Err(from_swift(status, error))
         }
     }
 

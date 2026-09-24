@@ -522,12 +522,15 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.column` counterpart.
     pub fn column(&self, name: &str) -> Result<Column, TabularDataError> {
         let name = to_cstring(name)?;
+        let mut payload = core::ptr::null_mut();
         let mut error = core::ptr::null_mut();
-        let payload = unsafe { ffi::td_dataframe_column_json(self.raw, name.as_ptr(), &raw mut error) };
-        if payload.is_null() {
-            Err(from_swift(ffi::status::FRAMEWORK_ERROR, error))
-        } else {
+        let status = unsafe {
+            ffi::td_dataframe_column_json(self.raw, name.as_ptr(), &raw mut payload, &raw mut error)
+        };
+        if status == ffi::status::OK {
             decode_column_json(payload)
+        } else {
+            Err(from_swift(status, error))
         }
     }
 

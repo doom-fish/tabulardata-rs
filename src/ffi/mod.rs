@@ -102,31 +102,36 @@ unsafe extern "C" {
     pub fn td_dataframe_column_json(
         frame: *mut c_void,
         column_name: *const c_char,
+        out_column_json: *mut *mut c_char,
         error_out: *mut *mut c_char,
-    ) -> *mut c_char;
+    ) -> i32;
     pub fn td_dataframe_any_column_json(
         frame: *mut c_void,
         column_name: *const c_char,
+        out_column_json: *mut *mut c_char,
         error_out: *mut *mut c_char,
-    ) -> *mut c_char;
+    ) -> i32;
     pub fn td_dataframe_column_slice_json(
         frame: *mut c_void,
         column_name: *const c_char,
         start: usize,
         end: usize,
+        out_slice_json: *mut *mut c_char,
         error_out: *mut *mut c_char,
-    ) -> *mut c_char;
+    ) -> i32;
     pub fn td_dataframe_column_mask_json(
         frame: *mut c_void,
         column_name: *const c_char,
         mask_json: *const c_char,
+        out_slice_json: *mut *mut c_char,
         error_out: *mut *mut c_char,
-    ) -> *mut c_char;
+    ) -> i32;
     pub fn td_dataframe_row_json(
         frame: *mut c_void,
         index: usize,
+        out_row_json: *mut *mut c_char,
         error_out: *mut *mut c_char,
-    ) -> *mut c_char;
+    ) -> i32;
     pub fn td_dataframe_rows_json(frame: *mut c_void, error_out: *mut *mut c_char) -> *mut c_char;
     pub fn td_dataframe_any_rows_json(
         frame: *mut c_void,

@@ -418,24 +418,22 @@ public func td_dataframe_rename_column(
 public func td_dataframe_column_json(
     _ framePtr: UnsafeMutableRawPointer?,
     _ columnName: UnsafePointer<CChar>?,
+    _ outColumnJSON: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
-) -> UnsafeMutablePointer<CChar>? {
-    guard let box = td_box(framePtr), let columnNamePtr = columnName else {
+) -> Int32 {
+    outColumnJSON.pointee = nil
+    guard let box = td_box(framePtr), let columnName else {
         td_write_error(errorOut, "data frame and column name must not be null")
-        return nil
-    }
-
-    let columnName = String(cString: columnNamePtr)
-    guard box.frame.indexOfColumn(columnName) != nil else {
-        td_write_error(errorOut, "there is no column named '\(columnName)'")
-        return nil
+        return TDR_INVALID_ARGUMENT
     }
 
     do {
-        return td_string(try td_json_string(td_column_object(box.frame[columnName])))
+        let index = try td_column_index(String(cString: columnName), in: box.frame)
+        outColumnJSON.pointee = td_string(try td_json_string(td_column_object(box.frame.columns[index])))
+        return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return nil
+        return td_status(for: error)
     }
 }
 

@@ -72,18 +72,22 @@ public func td_dataframe_from_rows_json(
 @_cdecl("td_dataframe_row_json")
 public func td_dataframe_row_json(
     _ framePtr: UnsafeMutableRawPointer?,
-    _ index: Int,
+    _ index: UInt,
+    _ outRowJSON: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
-) -> UnsafeMutablePointer<CChar>? {
+) -> Int32 {
+    outRowJSON.pointee = nil
     guard let box = td_box(framePtr) else {
         td_write_error(errorOut, "data frame must not be null")
-        return nil
+        return TDR_INVALID_ARGUMENT
     }
-    guard box.frame.rows.indices.contains(index) else {
-        td_write_error(errorOut, "row index out of bounds")
-        return nil
+    let position = Int(clamping: index)
+    guard box.frame.rows.indices.contains(position) else {
+        td_write_error(errorOut, "row index \(index) is out of bounds for a data frame with \(box.frame.rows.count) rows")
+        return TDR_INVALID_ARGUMENT
     }
-    return td_string(td_codable_json_string(td_row_payload(box.frame.rows[index])))
+    outRowJSON.pointee = td_string(td_codable_json_string(td_row_payload(box.frame.rows[position])))
+    return TDR_OK
 }
 
 @_cdecl("td_dataframe_any_rows_json")
