@@ -13,7 +13,7 @@ fn typed_column_protocols_and_shaped_data_work() -> Result<(), Box<dyn std::erro
     let prototype = joined.prototype();
     assert_eq!(prototype.name(), "joined_at");
     assert_eq!(prototype.wrapped_element_type(), "Date");
-    let empty = prototype.make_column(8);
+    let empty = prototype.make_column(8)?;
     assert_eq!(empty.type_name(), "Date");
     assert!(empty.is_empty());
 

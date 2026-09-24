@@ -54,7 +54,7 @@ pub trait AnyColumnPrototype {
     /// Matches the `TabularData` `AnyColumnPrototype.wrappedElementType` requirement.
     fn wrapped_element_type(&self) -> &str;
     /// Matches the `TabularData` `AnyColumnPrototype.makeColumn` requirement.
-    fn make_column(&self, capacity: usize) -> Column;
+    fn make_column(&self, capacity: usize) -> Result<Column, TabularDataError>;
 }
 
 impl AnyColumnPrototype for ColumnPrototype {
@@ -66,7 +66,7 @@ impl AnyColumnPrototype for ColumnPrototype {
         &self.type_name
     }
 
-    fn make_column(&self, capacity: usize) -> Column {
+    fn make_column(&self, capacity: usize) -> Result<Column, TabularDataError> {
         Column::with_capacity(self.name.clone(), &self.type_name, capacity)
     }
 }

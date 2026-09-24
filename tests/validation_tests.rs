@@ -483,7 +483,11 @@ fn int32_and_float_columns_round_trip_as_typed_columns() -> Result<(), TabularDa
     let message = invalid(Column::from_any_values("x", "Int32", &[AnyValue::Int(1 << 40)]));
     assert!(message.contains("Int32"), "{message}");
     invalid(Column::from_any_values("x", "Float", &[AnyValue::from("1.5")]));
-    assert_eq!(Column::with_capacity("x", "Int32", 0).type_name(), "Int32");
-    assert_eq!(Column::with_capacity("x", "Float", 0).type_name(), "Float");
+    assert_eq!(Column::with_capacity("x", "Int32", 0)?.type_name(), "Int32");
+    assert_eq!(Column::with_capacity("x", "Float", 0)?.type_name(), "Float");
+    assert_eq!(Column::with_capacity("x", "String", 0)?.type_name(), "String");
+    let message = invalid(Column::with_capacity("x", "Array<Optional<Any>>", 0));
+    assert!(message.contains("unsupported"), "{message}");
+    invalid(ColumnPrototype::new("x", "Int8").make_column(0));
     Ok(())
 }

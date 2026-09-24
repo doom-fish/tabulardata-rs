@@ -48,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** `transform_column` and `transform_non_null_column` keep the column's element type and convert the closure's values with the same rules as `append_row` (for example 2.0 into an Int column, but no longer a String into a Data column); a value that does not convert returns `InvalidArgument` and leaves the column unchanged.
 - **Breaking:** `explode_column` and `exploding_column` follow `TabularData`: rows whose array is empty or null are dropped instead of kept with a null. The exploded column takes the arrays' element type (String, Int, Double, Bool, Date, Data, array or object, with Int and Double widened to Double) instead of going through `from_rows`; arrays that mix other kinds, and columns that do not hold arrays, return `InvalidArgument` instead of being left unchanged.
 - **Breaking:** `ColumnData` is `#[non_exhaustive]` and gains `Int32s` and `Floats`, built with `Column::int32s` and `Column::floats`. `Column::from_any_values`, `Column::with_capacity` and `ColumnData::with_capacity` map `Float` to `Floats` instead of `Doubles`, and `Int32` to `Int32s` instead of an error or a String column.
+- **Breaking:** `ColumnData::with_capacity`, `Column::with_capacity` and `AnyColumnPrototype::make_column` return a `Result` and reject type names they cannot build, such as the `Array<Optional<Any>>` of an array column's prototype, instead of silently returning a String column.
 - Requires `apple-cf` 0.11; `rust-version` is 1.82.
 
 ### Added

@@ -112,17 +112,19 @@ impl ColumnData {
     }
 
     /// Wraps the `TabularData` `ColumnData.withCapacity` counterpart.
-    #[must_use]
-    pub fn with_capacity(type_name: &str, capacity: usize) -> Self {
+    pub fn with_capacity(type_name: &str, capacity: usize) -> Result<Self, TabularDataError> {
         match normalize_type_name(type_name).as_str() {
-            "int" | "integer" => Self::Ints(Vec::with_capacity(capacity)),
-            "int32" => Self::Int32s(Vec::with_capacity(capacity)),
-            "float" => Self::Floats(Vec::with_capacity(capacity)),
-            "double" => Self::Doubles(Vec::with_capacity(capacity)),
-            "bool" | "boolean" => Self::Bools(Vec::with_capacity(capacity)),
-            "date" => Self::Dates(Vec::with_capacity(capacity)),
-            "data" | "binary" => Self::Data(Vec::with_capacity(capacity)),
-            _ => Self::Strings(Vec::with_capacity(capacity)),
+            "string" => Ok(Self::Strings(Vec::with_capacity(capacity))),
+            "int" | "integer" => Ok(Self::Ints(Vec::with_capacity(capacity))),
+            "int32" => Ok(Self::Int32s(Vec::with_capacity(capacity))),
+            "float" => Ok(Self::Floats(Vec::with_capacity(capacity))),
+            "double" => Ok(Self::Doubles(Vec::with_capacity(capacity))),
+            "bool" | "boolean" => Ok(Self::Bools(Vec::with_capacity(capacity))),
+            "date" => Ok(Self::Dates(Vec::with_capacity(capacity))),
+            "data" | "binary" => Ok(Self::Data(Vec::with_capacity(capacity))),
+            other => Err(TabularDataError::InvalidArgument(format!(
+                "unsupported column type '{other}'"
+            ))),
         }
     }
 
@@ -177,12 +179,15 @@ pub struct Column {
 
 impl Column {
     /// Wraps the `TabularData` `Column.withCapacity` counterpart.
-    #[must_use]
-    pub fn with_capacity(name: impl Into<String>, type_name: &str, capacity: usize) -> Self {
-        Self {
+    pub fn with_capacity(
+        name: impl Into<String>,
+        type_name: &str,
+        capacity: usize,
+    ) -> Result<Self, TabularDataError> {
+        Ok(Self {
             name: name.into(),
-            data: ColumnData::with_capacity(type_name, capacity),
-        }
+            data: ColumnData::with_capacity(type_name, capacity)?,
+        })
     }
 
     /// Wraps the `TabularData` `Column.strings` counterpart.
