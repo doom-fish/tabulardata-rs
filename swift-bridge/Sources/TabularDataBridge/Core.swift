@@ -154,7 +154,7 @@ func td_json_safe(_ value: Any?) -> Any {
         if CFGetTypeID(number) == CFBooleanGetTypeID() {
             return number.boolValue
         }
-        if CFNumberIsFloatType(number), !number.doubleValue.isFinite {
+        if !number.doubleValue.isFinite {
             return td_non_finite_name(number.doubleValue)
         }
         return number
