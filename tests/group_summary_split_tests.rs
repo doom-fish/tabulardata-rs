@@ -18,6 +18,13 @@ fn group_summaries_and_group_splits_work() -> Result<(), Box<dyn std::error::Err
 
     let (left, right) = grouped.random_split(0.5, Some(42))?;
     assert_eq!(left.row_count() + right.row_count(), frame.row_count());
+    let seeded = grouped.random_split(0.5, Some(42))?;
+    assert_eq!(seeded.0.row_count(), left.row_count());
+    let mut unseeded_sizes = std::collections::BTreeSet::new();
+    for _ in 0..64 {
+        unseeded_sizes.insert(grouped.random_split(0.5, None)?.0.row_count());
+    }
+    assert_eq!(unseeded_sizes.into_iter().collect::<Vec<_>>(), [1, 3]);
 
     let summaries = grouped.summary()?;
     assert_eq!(summaries.len(), 2);

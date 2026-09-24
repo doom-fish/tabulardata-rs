@@ -1,3 +1,6 @@
+use std::collections::hash_map::RandomState;
+use std::hash::{BuildHasher, Hasher};
+
 use serde::{Deserialize, Serialize};
 
 use crate::any_column::AnyValue;
@@ -354,7 +357,8 @@ impl GroupBy<'_> {
             ));
         }
         let mut groups = self.materialized_groups()?;
-        shuffle_groups(&mut groups, seed.unwrap_or(0x9E37_79B9_7F4A_7C15));
+        let seed = seed.unwrap_or_else(|| RandomState::new().build_hasher().finish());
+        shuffle_groups(&mut groups, seed);
         let split_at = ((groups.len() as f64) * proportion).round() as usize;
         let (left_groups, right_groups) = groups.split_at(split_at.min(groups.len()));
         let mut left = self.frame.slice_rows(0..0)?;
