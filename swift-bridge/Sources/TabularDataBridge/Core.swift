@@ -138,9 +138,9 @@ func td_json_safe(_ value: Any?) -> Any {
     }
 
     switch value {
-    case let dict as [String: Any]:
-        return dict.mapValues { td_json_safe($0) }
     case let dict as [String: Any?]:
+        return dict.mapValues { td_json_safe($0) }
+    case let dict as [String: Any]:
         return dict.mapValues { td_json_safe($0) }
     case let dict as NSDictionary:
         var object: [String: Any] = [:]
@@ -148,9 +148,9 @@ func td_json_safe(_ value: Any?) -> Any {
             object[String(describing: key)] = td_json_safe(value)
         }
         return object
-    case let array as [Any]:
-        return array.map { td_json_safe($0) }
     case let array as [Any?]:
+        return array.map { td_json_safe($0) }
+    case let array as [Any]:
         return array.map { td_json_safe($0) }
     case let array as NSArray:
         return array.map { td_json_safe($0) }
@@ -384,9 +384,9 @@ enum TDAnyValue: Codable, Equatable {
         }
 
         switch value {
-        case let dict as [String: Any]:
-            return .object(dict.mapValues { Self.fromFoundation($0) })
         case let dict as [String: Any?]:
+            return .object(dict.mapValues { Self.fromFoundation($0) })
+        case let dict as [String: Any]:
             return .object(dict.mapValues { Self.fromFoundation($0) })
         case let dict as NSDictionary:
             var object: [String: TDAnyValue] = [:]
@@ -394,9 +394,9 @@ enum TDAnyValue: Codable, Equatable {
                 object[String(describing: key)] = Self.fromFoundation(value)
             }
             return .object(object)
-        case let array as [Any]:
-            return .array(array.map { Self.fromFoundation($0) })
         case let array as [Any?]:
+            return .array(array.map { Self.fromFoundation($0) })
+        case let array as [Any]:
             return .array(array.map { Self.fromFoundation($0) })
         case let array as NSArray:
             return .array(array.map { Self.fromFoundation($0) })

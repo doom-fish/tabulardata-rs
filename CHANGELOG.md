@@ -33,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `insert_column` and `replace_column` reject a name that is already taken by a column or an alias instead of letting `TabularData` rename the column to `<name>.1` or silently move the alias, and `remove_column` through an alias removes that alias instead of leaving it dangling.
 - `sorted_by`, `sort_by`, and `random_split` and `stratified_split` with a proportion of 0 or 1 keep the frame's aliases.
 - `from_rows` accepts array and object values and creates array and object columns, so `DataFrame::from_rows(&frame.rows()?)` works for frames read from JSON.
+- Null elements inside array and object cells read back as null instead of the string `"nil"` in `rows`, `row`, `any_column`, `column_slice` and `rows_json`, so a `transform_column` or `from_rows` round trip no longer turns them into strings.
 - New `validation_tests` cover the error paths.
 
 ### Changed

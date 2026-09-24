@@ -475,3 +475,33 @@ fn sorting_splitting_and_cloning_keep_aliases() -> Result<(), TabularDataError> 
     assert_aliases(&frame.try_clone()?)?;
     Ok(())
 }
+
+#[test]
+fn null_elements_inside_arrays_and_objects_stay_null() -> Result<(), TabularDataError> {
+    let json = r#"[{"t":["c",null],"o":{"j":1,"k":null}}]"#;
+    let mut frame = DataFrame::from_json_string(json, JSONReadingOptions::new())?;
+    let array = AnyValue::Array(vec![AnyValue::from("c"), AnyValue::Null]);
+    let object = AnyValue::Object(
+        [
+            ("j".to_owned(), AnyValue::Int(1)),
+            ("k".to_owned(), AnyValue::Null),
+        ]
+        .into(),
+    );
+    assert_eq!(frame.any_column("t")?.values, std::slice::from_ref(&array));
+    assert_eq!(frame.any_column("o")?.values, std::slice::from_ref(&object));
+    assert_eq!(frame.row(0)?.get("t"), Some(&array));
+    assert_eq!(
+        frame.rows_json()?,
+        [serde_json::json!({"o": {"j": 1, "k": null}, "t": ["c", null]})]
+    );
+
+    frame.transform_column("t", Clone::clone)?;
+    frame.transform_column("o", Clone::clone)?;
+    let rebuilt = DataFrame::from_rows(&frame.rows()?)?;
+    for frame in [&frame, &rebuilt] {
+        assert_eq!(frame.any_column("t")?.values, std::slice::from_ref(&array));
+        assert_eq!(frame.any_column("o")?.values, std::slice::from_ref(&object));
+    }
+    Ok(())
+}
