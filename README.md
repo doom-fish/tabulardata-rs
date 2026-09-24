@@ -83,6 +83,7 @@ See [COVERAGE.md](COVERAGE.md) for the API matrix and [COVERAGE_AUDIT.md](COVERA
 - JSON output rejects frames with values JSON cannot represent (NaN, infinity, Data, and dates or data inside array and object columns) with `InvalidArgument`; CSV output writes them as text.
 - NaN and infinite values cross the bridge as `"NaN"`, `"Infinity"` and `"-Infinity"`, which is also how `rows_json` shows them. Filters treat NaN as unordered, and sorting puts nulls first and NaN after every number.
 - An ordered group aggregate needs a result column name (`count`, `sum(x)`, `mean(x)`, `quantile(x)`, `min(x)`, `max(x)`) that no grouping column already uses.
+- `explode_column` and `exploding_column` follow `TabularData`: each array element becomes a row, and rows whose array is empty or null are dropped. The exploded column takes the element type of the arrays.
 
 ## License
 
