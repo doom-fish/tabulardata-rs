@@ -13,11 +13,14 @@ use crate::summary::ColumnSummary;
 
 /// Wraps storage used by the `TabularData` `Column` counterpart.
 #[derive(Debug, Clone, PartialEq)]
+#[non_exhaustive]
 pub enum ColumnData {
     /// Wraps the `TabularData` `ColumnData.strings` case.
     Strings(Vec<Option<String>>),
     /// Wraps the `TabularData` `ColumnData.ints` case.
     Ints(Vec<Option<i64>>),
+    Int32s(Vec<Option<i32>>),
+    Floats(Vec<Option<f32>>),
     /// Wraps the `TabularData` `ColumnData.doubles` case.
     Doubles(Vec<Option<f64>>),
     /// Wraps the `TabularData` `ColumnData.bools` case.
@@ -35,6 +38,8 @@ impl ColumnData {
         match self {
             Self::Strings(values) | Self::Data(values) => values.len(),
             Self::Ints(values) => values.len(),
+            Self::Int32s(values) => values.len(),
+            Self::Floats(values) => values.len(),
             Self::Doubles(values) | Self::Dates(values) => values.len(),
             Self::Bools(values) => values.len(),
         }
@@ -52,6 +57,8 @@ impl ColumnData {
         match self {
             Self::Strings(_) => "string",
             Self::Ints(_) => "int",
+            Self::Int32s(_) => "int32",
+            Self::Floats(_) => "float",
             Self::Doubles(_) => "double",
             Self::Bools(_) => "bool",
             Self::Dates(_) => "date",
@@ -65,6 +72,8 @@ impl ColumnData {
         match self {
             Self::Strings(_) => "String",
             Self::Ints(_) => "Int",
+            Self::Int32s(_) => "Int32",
+            Self::Floats(_) => "Float",
             Self::Doubles(_) => "Double",
             Self::Bools(_) => "Bool",
             Self::Dates(_) => "Date",
@@ -78,6 +87,8 @@ impl ColumnData {
         match self {
             Self::Strings(values) => values.iter().filter(|value| value.is_none()).count(),
             Self::Ints(values) => values.iter().filter(|value| value.is_none()).count(),
+            Self::Int32s(values) => values.iter().filter(|value| value.is_none()).count(),
+            Self::Floats(values) => values.iter().filter(|value| value.is_none()).count(),
             Self::Doubles(values) => values.iter().filter(|value| value.is_none()).count(),
             Self::Bools(values) => values.iter().filter(|value| value.is_none()).count(),
             Self::Dates(values) => values.iter().filter(|value| value.is_none()).count(),
@@ -91,6 +102,8 @@ impl ColumnData {
         match self {
             Self::Strings(_) => Self::Strings(Vec::new()),
             Self::Ints(_) => Self::Ints(Vec::new()),
+            Self::Int32s(_) => Self::Int32s(Vec::new()),
+            Self::Floats(_) => Self::Floats(Vec::new()),
             Self::Doubles(_) => Self::Doubles(Vec::new()),
             Self::Bools(_) => Self::Bools(Vec::new()),
             Self::Dates(_) => Self::Dates(Vec::new()),
@@ -103,7 +116,9 @@ impl ColumnData {
     pub fn with_capacity(type_name: &str, capacity: usize) -> Self {
         match normalize_type_name(type_name).as_str() {
             "int" | "integer" => Self::Ints(Vec::with_capacity(capacity)),
-            "double" | "float" => Self::Doubles(Vec::with_capacity(capacity)),
+            "int32" => Self::Int32s(Vec::with_capacity(capacity)),
+            "float" => Self::Floats(Vec::with_capacity(capacity)),
+            "double" => Self::Doubles(Vec::with_capacity(capacity)),
             "bool" | "boolean" => Self::Bools(Vec::with_capacity(capacity)),
             "date" => Self::Dates(Vec::with_capacity(capacity)),
             "data" | "binary" => Self::Data(Vec::with_capacity(capacity)),
@@ -122,6 +137,14 @@ impl ColumnData {
             Self::Ints(values) => values
                 .iter()
                 .map(|value| value.map_or(AnyValue::Null, AnyValue::Int))
+                .collect(),
+            Self::Int32s(values) => values
+                .iter()
+                .map(|value| value.map_or(AnyValue::Null, |value| AnyValue::Int(value.into())))
+                .collect(),
+            Self::Floats(values) => values
+                .iter()
+                .map(|value| value.map_or(AnyValue::Null, |value| AnyValue::Double(value.into())))
                 .collect(),
             Self::Doubles(values) => values
                 .iter()
@@ -180,6 +203,22 @@ impl Column {
         }
     }
 
+    #[must_use]
+    pub fn int32s(name: impl Into<String>, values: Vec<Option<i32>>) -> Self {
+        Self {
+            name: name.into(),
+            data: ColumnData::Int32s(values),
+        }
+    }
+
+    #[must_use]
+    pub fn floats(name: impl Into<String>, values: Vec<Option<f32>>) -> Self {
+        Self {
+            name: name.into(),
+            data: ColumnData::Floats(values),
+        }
+    }
+
     /// Wraps the `TabularData` `Column.doubles` counterpart.
     #[must_use]
     pub fn doubles(name: impl Into<String>, values: Vec<Option<f64>>) -> Self {
@@ -217,6 +256,7 @@ impl Column {
     }
 
     /// Wraps the `TabularData` `Column.fromAnyValues` counterpart.
+    #[allow(clippy::cast_possible_truncation)]
     pub fn from_any_values(
         name: impl Into<String>,
         type_name: &str,
@@ -255,7 +295,34 @@ impl Column {
                     })
                     .collect::<Result<Vec<_>, _>>()?,
             )),
-            "double" | "float" => Ok(Self::doubles(
+            "int32" => Ok(Self::int32s(
+                name,
+                values
+                    .iter()
+                    .map(|value| match value {
+                        AnyValue::Null => Ok(None),
+                        AnyValue::Int(value) => i32::try_from(*value).map(Some).map_err(|_| {
+                            TabularDataError::InvalidArgument(format!(
+                                "{value} does not fit in an Int32 column"
+                            ))
+                        }),
+                        other => Err(type_mismatch("int32", other)),
+                    })
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+            "float" => Ok(Self::floats(
+                name,
+                values
+                    .iter()
+                    .map(|value| match value {
+                        AnyValue::Null => Ok(None),
+                        AnyValue::Int(value) => Ok(Some(*value as f32)),
+                        AnyValue::Double(value) => Ok(Some(*value as f32)),
+                        other => Err(type_mismatch("float", other)),
+                    })
+                    .collect::<Result<Vec<_>, _>>()?,
+            )),
+            "double" => Ok(Self::doubles(
                 name,
                 values
                     .iter()
@@ -470,6 +537,14 @@ pub(crate) fn encode_column_json(column: &Column) -> Result<String, TabularDataE
             .iter()
             .map(|value| value.map_or(Value::Null, |value| Value::Number(value.into())))
             .collect(),
+        ColumnData::Int32s(values) => values
+            .iter()
+            .map(|value| value.map_or(Value::Null, |value| Value::Number(value.into())))
+            .collect(),
+        ColumnData::Floats(values) => values
+            .iter()
+            .map(|value| value.map_or(Value::Null, |value| float_to_json(value.into())))
+            .collect(),
         ColumnData::Doubles(values) | ColumnData::Dates(values) => values
             .iter()
             .map(|value| value.map_or(Value::Null, float_to_json))
@@ -498,6 +573,7 @@ pub(crate) fn encode_column_json(column: &Column) -> Result<String, TabularDataE
     })
 }
 
+#[allow(clippy::cast_possible_truncation)]
 pub(crate) fn decode_column_json(ptr: *mut core::ffi::c_char) -> Result<Column, TabularDataError> {
     let payload = crate::private::decode_json::<ColumnPayload>(ptr)?;
     match payload.kind.as_str() {
@@ -530,6 +606,42 @@ pub(crate) fn decode_column_json(ptr: *mut core::ffi::c_char) -> Result<Column, 
                     other => Err(TabularDataError::FrameworkError(format!(
                         "expected int column value, got {other}"
                     ))),
+                })
+                .collect::<Result<Vec<_>, _>>()?,
+        )),
+        "int32" => Ok(Column::int32s(
+            payload.name,
+            payload
+                .values
+                .into_iter()
+                .map(|value| match value {
+                    Value::Null => Ok(None),
+                    other => other
+                        .as_i64()
+                        .and_then(|number| i32::try_from(number).ok())
+                        .map(Some)
+                        .ok_or_else(|| {
+                            TabularDataError::FrameworkError(format!(
+                                "expected int32 column value, got {other}"
+                            ))
+                        }),
+                })
+                .collect::<Result<Vec<_>, _>>()?,
+        )),
+        "float" => Ok(Column::floats(
+            payload.name,
+            payload
+                .values
+                .into_iter()
+                .map(|value| match value {
+                    Value::Null => Ok(None),
+                    other => float_from_json(&other)
+                        .map(|number| Some(number as f32))
+                        .ok_or_else(|| {
+                            TabularDataError::FrameworkError(format!(
+                                "expected float column value, got {other}"
+                            ))
+                        }),
                 })
                 .collect::<Result<Vec<_>, _>>()?,
         )),

@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - NaN and infinite values cross the bridge in both directions as `"NaN"`, `"Infinity"` and `"-Infinity"`: `rows`, `column`, `any_column`, `column_slice` and `rows_json` no longer fail on frames that hold them, and `Column::doubles`, `Column::dates`, `AnyValue::Double` and `AnyValue::Date` accept them.
 - `slice_rows`, `prefix_rows`, `suffix_rows` and `column_slice` treat bounds above `isize::MAX` as the end of the frame instead of returning nothing.
 - `ColumnSlice::range`, `AnyColumn::slice` and `Column::slice` return an empty slice for a reversed range instead of panicking, and `ColumnSlice::range` and `ColumnSlice::distinct` no longer panic when `indices` is shorter than `values`.
+- `DataFrame::column`, `AnyColumn::to_column` and `ColumnSlice::to_column` read Float and Int32 columns, such as CSV columns read with `CSVType::Float`, instead of failing or turning them into Double columns.
 - New `validation_tests` cover the error paths.
 
 ### Changed
@@ -36,6 +37,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** validation failures report `TabularDataError::InvalidArgument`; several bridge errors that used to report `FrameworkError` now report `InvalidArgument`.
 - **Breaking:** raw FFI: `td_dataframe_from_csv_data` and `td_dataframe_from_json_data` take a byte pointer and length, `td_dataframe_json_data_json` is replaced by `td_dataframe_json_data` (which returns a status and writes the buffer and its length through out-pointers), and `td_dataframe_append_rows_of` is new.
 - **Breaking:** `AnyValue::Double` and `AnyValue::Date` serialize NaN and infinite values as the strings `"NaN"`, `"Infinity"` and `"-Infinity"` instead of `null`, and deserialize them back; `rows_json` reports them the same way.
+- **Breaking:** `ColumnData` is `#[non_exhaustive]` and gains `Int32s` and `Floats`, built with `Column::int32s` and `Column::floats`. `Column::from_any_values`, `Column::with_capacity` and `ColumnData::with_capacity` map `Float` to `Floats` instead of `Doubles`, and `Int32` to `Int32s` instead of an error or a String column.
 - Requires `apple-cf` 0.11; `rust-version` is 1.82.
 
 ## [0.2.6] - 2026-05-18

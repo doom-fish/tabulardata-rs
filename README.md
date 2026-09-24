@@ -76,7 +76,7 @@ See [COVERAGE.md](COVERAGE.md) for the API matrix and [COVERAGE_AUDIT.md](COVERA
 ## Notes
 
 - `TabularData` is a Swift-only framework, so this crate is implemented through a `SwiftPM` bridge instead of Objective-C headers.
-- Typed `Column` construction covers `String`, `Int`, `Double`, `Bool`, `Date`, and `Data`; heterogeneous APIs use `AnyValue`/`AnyRow`.
+- Typed `Column` construction covers `String`, `Int`, `Int32`, `Float`, `Double`, `Bool`, `Date`, and `Data`; heterogeneous APIs use `AnyValue`/`AnyRow`.
 - Filtering, sorting, and grouping are described in Rust and executed in Swift through JSON payloads instead of bridged closures; higher-level mutation and group-summary helpers are composed from those primitives in Rust.
 - `TabularData` aborts the process on unknown column names and mistyped values. The bridge checks column names, join key types, grouping column types and cell values before every such call and returns `TabularDataError::InvalidArgument` instead. Appended values are converted to the column's element type (for example an integer into a `Double` or `Float` column) or rejected.
 - File paths must be valid UTF-8. CSV and JSON input must be valid UTF-8 and is passed to `TabularData` as bytes.

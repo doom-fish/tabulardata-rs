@@ -51,6 +51,38 @@ private extension TDJSONValue {
         }
     }
 
+    func optionalInt32() throws -> Int32? {
+        switch self {
+        case .null:
+            return nil
+        case .int(let value):
+            guard let value = Int32(exactly: value) else {
+                throw td_invalid_argument("\(value) does not fit in an Int32 column")
+            }
+            return value
+        default:
+            throw td_invalid_argument("int32 columns must contain integers or nulls")
+        }
+    }
+
+    func optionalFloat() throws -> Float? {
+        switch self {
+        case .null:
+            return nil
+        case .double(let value):
+            return Float(value)
+        case .int(let value):
+            return Float(value)
+        case .string(let text):
+            guard let value = td_non_finite_value(text) else {
+                throw td_invalid_argument("float columns must contain numbers or nulls")
+            }
+            return Float(value)
+        default:
+            throw td_invalid_argument("float columns must contain numbers or nulls")
+        }
+    }
+
     func optionalBool() throws -> Bool? {
         switch self {
         case .null:
@@ -100,6 +132,12 @@ private func td_make_any_column(_ payload: TDColumnPayload) throws -> AnyColumn 
     case "int":
         return Column(name: payload.name, contents: try payload.values.map { try $0.optionalInt() })
             .eraseToAnyColumn()
+    case "int32":
+        return Column(name: payload.name, contents: try payload.values.map { try $0.optionalInt32() })
+            .eraseToAnyColumn()
+    case "float":
+        return Column(name: payload.name, contents: try payload.values.map { try $0.optionalFloat() })
+            .eraseToAnyColumn()
     case "double":
         return Column(name: payload.name, contents: try payload.values.map { try $0.optionalDouble() })
             .eraseToAnyColumn()
@@ -127,6 +165,18 @@ private func td_column_object(_ column: AnyColumn) throws -> [String: Any] {
             value.map { Int64($0) } ?? NSNull()
         }
         return ["name": column.name, "kind": "int", "values": values]
+    }
+    if column.wrappedElementType == Int32.self {
+        let values = Array(column.assumingType(Int32.self)).map { value -> Any in
+            value.map { Int64($0) } ?? NSNull()
+        }
+        return ["name": column.name, "kind": "int32", "values": values]
+    }
+    if column.wrappedElementType == Float.self {
+        let values = Array(column.assumingType(Float.self)).map { value -> Any in
+            value.map { Double($0) } ?? NSNull()
+        }
+        return ["name": column.name, "kind": "float", "values": values]
     }
     if column.wrappedElementType == Double.self {
         let values = Array(column.assumingType(Double.self)).map { value -> Any in

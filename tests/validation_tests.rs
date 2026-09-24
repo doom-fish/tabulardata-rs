@@ -450,3 +450,30 @@ fn non_finite_doubles_cross_the_bridge_in_both_directions() -> Result<(), Tabula
     assert_eq!(read[1], AnyValue::Double(f64::NEG_INFINITY));
     Ok(())
 }
+
+#[test]
+fn int32_and_float_columns_round_trip_as_typed_columns() -> Result<(), TabularDataError> {
+    let small = Column::int32s("small", vec![Some(i32::MIN), None, Some(i32::MAX)]);
+    let weight = Column::floats("weight", vec![Some(0.1), Some(f32::INFINITY), None]);
+    let frame = DataFrame::from_columns(&[small.clone(), weight.clone()])?;
+    assert!(frame.contains_column_of_type("small", "Int32")?);
+    assert!(frame.contains_column_of_type("weight", "Float")?);
+    assert_eq!(frame.column("small")?, small);
+    assert_eq!(frame.column("weight")?, weight);
+    assert_eq!(frame.any_column("small")?.to_column()?, small);
+    assert_eq!(frame.any_column("weight")?.to_column()?, weight);
+    assert_eq!(frame.column_slice("weight", 0..2)?.to_column()?.type_name(), "Float");
+
+    let csv = DataFrame::from_csv_data(
+        b"w\n1.25\n",
+        CSVReadingOptions::new().with_floating_point_type(CSVType::Float),
+    )?;
+    assert_eq!(csv.column("w")?, Column::floats("w", vec![Some(1.25)]));
+
+    let message = invalid(Column::from_any_values("x", "Int32", &[AnyValue::Int(1 << 40)]));
+    assert!(message.contains("Int32"), "{message}");
+    invalid(Column::from_any_values("x", "Float", &[AnyValue::from("1.5")]));
+    assert_eq!(Column::with_capacity("x", "Int32", 0).type_name(), "Int32");
+    assert_eq!(Column::with_capacity("x", "Float", 0).type_name(), "Float");
+    Ok(())
+}
