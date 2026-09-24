@@ -16,15 +16,32 @@ private struct TDSortColumn {
     let column: AnyColumn
 }
 
+private func td_sort_rank(_ value: TDAnyValue) -> Int {
+    switch value {
+    case .null:
+        return 0
+    case let .double(number), let .date(number):
+        return number.isNaN ? 2 : 1
+    default:
+        return 1
+    }
+}
+
 private func td_compare_rows(_ lhs: Int, _ rhs: Int, keys: [TDSortColumn]) -> ComparisonResult {
     for key in keys {
         let left = key.values[lhs]
         let right = key.values[rhs]
-        if td_any_value_equal(left, right) {
+        let leftRank = td_sort_rank(left)
+        let rightRank = td_sort_rank(right)
+        let comparison: ComparisonResult
+        if leftRank != rightRank {
+            comparison = leftRank < rightRank ? .orderedAscending : .orderedDescending
+        } else if leftRank != 1 || td_any_value_equal(left, right) {
             continue
+        } else {
+            comparison = td_any_value_compare(left, right)
+                ?? String(describing: key.column[lhs] ?? "").compare(String(describing: key.column[rhs] ?? ""))
         }
-        let comparison = td_any_value_compare(left, right)
-            ?? String(describing: key.column[lhs] ?? "").compare(String(describing: key.column[rhs] ?? ""))
         if comparison == .orderedSame {
             continue
         }

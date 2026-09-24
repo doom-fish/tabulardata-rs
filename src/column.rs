@@ -3,11 +3,12 @@
 use std::fmt;
 
 use serde::Deserialize;
-use serde_json::{Number, Value};
+use serde_json::Value;
 
 use crate::any_column::AnyValue;
 use crate::column_slice::ColumnSlice;
 use crate::error::TabularDataError;
+use crate::private::{float_from_json, float_to_json};
 use crate::summary::ColumnSummary;
 
 /// Wraps storage used by the `TabularData` `Column` counterpart.
@@ -456,7 +457,7 @@ struct ColumnPayload {
 }
 
 pub(crate) fn encode_column_json(column: &Column) -> Result<String, TabularDataError> {
-    let values = match &column.data {
+    let values: Vec<Value> = match &column.data {
         ColumnData::Strings(values) => values
             .iter()
             .map(|value| {
@@ -471,17 +472,8 @@ pub(crate) fn encode_column_json(column: &Column) -> Result<String, TabularDataE
             .collect(),
         ColumnData::Doubles(values) | ColumnData::Dates(values) => values
             .iter()
-            .map(|value| {
-                value.as_ref().map_or(Ok(Value::Null), |value| {
-                    Number::from_f64(*value).map(Value::Number).ok_or_else(|| {
-                        TabularDataError::InvalidArgument(format!(
-                            "{} columns must not contain NaN or infinite values",
-                            column.data.kind()
-                        ))
-                    })
-                })
-            })
-            .collect::<Result<Vec<_>, _>>()?,
+            .map(|value| value.map_or(Value::Null, float_to_json))
+            .collect(),
         ColumnData::Bools(values) => values
             .iter()
             .map(|value| value.map_or(Value::Null, Value::Bool))
@@ -548,14 +540,11 @@ pub(crate) fn decode_column_json(ptr: *mut core::ffi::c_char) -> Result<Column, 
                 .into_iter()
                 .map(|value| match value {
                     Value::Null => Ok(None),
-                    Value::Number(number) => number.as_f64().map(Some).ok_or_else(|| {
-                        TabularDataError::FrameworkError(
-                            "double column values must be finite numbers".into(),
-                        )
+                    other => float_from_json(&other).map(Some).ok_or_else(|| {
+                        TabularDataError::FrameworkError(format!(
+                            "expected double column value, got {other}"
+                        ))
                     }),
-                    other => Err(TabularDataError::FrameworkError(format!(
-                        "expected double column value, got {other}"
-                    ))),
                 })
                 .collect::<Result<Vec<_>, _>>()?,
         )),
@@ -580,14 +569,11 @@ pub(crate) fn decode_column_json(ptr: *mut core::ffi::c_char) -> Result<Column, 
                 .into_iter()
                 .map(|value| match value {
                     Value::Null => Ok(None),
-                    Value::Number(number) => number.as_f64().map(Some).ok_or_else(|| {
-                        TabularDataError::FrameworkError(
-                            "date column values must be numeric timestamps".into(),
-                        )
+                    other => float_from_json(&other).map(Some).ok_or_else(|| {
+                        TabularDataError::FrameworkError(format!(
+                            "expected date column value, got {other}"
+                        ))
                     }),
-                    other => Err(TabularDataError::FrameworkError(format!(
-                        "expected date column value, got {other}"
-                    ))),
                 })
                 .collect::<Result<Vec<_>, _>>()?,
         )),

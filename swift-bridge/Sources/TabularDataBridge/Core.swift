@@ -58,9 +58,35 @@ func td_string(_ value: String) -> UnsafeMutablePointer<CChar>? {
     return terminated.withCString { strdup($0) }
 }
 
+let TD_NAN = "NaN"
+let TD_INFINITY = "Infinity"
+let TD_NEGATIVE_INFINITY = "-Infinity"
+
+func td_non_finite_name(_ value: Double) -> String {
+    value.isNaN ? TD_NAN : (value > 0 ? TD_INFINITY : TD_NEGATIVE_INFINITY)
+}
+
+func td_non_finite_value(_ text: String) -> Double? {
+    switch text {
+    case TD_NAN:
+        return .nan
+    case TD_INFINITY:
+        return .infinity
+    case TD_NEGATIVE_INFINITY:
+        return -.infinity
+    default:
+        return nil
+    }
+}
+
 func td_codable_json_string<T: Encodable>(_ value: T) -> String {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.sortedKeys]
+    encoder.nonConformingFloatEncodingStrategy = .convertToString(
+        positiveInfinity: TD_INFINITY,
+        negativeInfinity: TD_NEGATIVE_INFINITY,
+        nan: TD_NAN
+    )
     do {
         let data = try encoder.encode(value)
         return String(data: data, encoding: .utf8) ?? "null"
@@ -127,6 +153,9 @@ func td_json_safe(_ value: Any?) -> Any {
     case let number as NSNumber:
         if CFGetTypeID(number) == CFBooleanGetTypeID() {
             return number.boolValue
+        }
+        if CFNumberIsFloatType(number), !number.doubleValue.isFinite {
+            return td_non_finite_name(number.doubleValue)
         }
         return number
     case let string as String:
@@ -280,11 +309,11 @@ enum TDAnyValue: Codable, Equatable {
         case .int:
             self = .int(try container.decode(Int64.self, forKey: .value))
         case .double:
-            self = .double(try container.decode(Double.self, forKey: .value))
+            self = .double(try Self.decodeNumber(from: container))
         case .bool:
             self = .bool(try container.decode(Bool.self, forKey: .value))
         case .date:
-            self = .date(try container.decode(Double.self, forKey: .value))
+            self = .date(try Self.decodeNumber(from: container))
         case .data:
             self = .data(try container.decode(String.self, forKey: .value))
         case .array:
@@ -292,6 +321,21 @@ enum TDAnyValue: Codable, Equatable {
         case .object:
             self = .object(try container.decode([String: TDAnyValue].self, forKey: .value))
         }
+    }
+
+    private static func decodeNumber(from container: KeyedDecodingContainer<CodingKeys>) throws -> Double {
+        if let number = try? container.decode(Double.self, forKey: .value) {
+            return number
+        }
+        let text = try container.decode(String.self, forKey: .value)
+        guard let number = td_non_finite_value(text) else {
+            throw DecodingError.dataCorruptedError(
+                forKey: .value,
+                in: container,
+                debugDescription: "expected a number, NaN or Infinity"
+            )
+        }
+        return number
     }
 
     func encode(to encoder: Encoder) throws {
@@ -457,6 +501,7 @@ func td_any_value_compare(_ lhs: TDAnyValue, _ rhs: TDAnyValue) -> ComparisonRes
         return left ? .orderedDescending : .orderedAscending
     default:
         if let left = lhs.numericValue, let right = rhs.numericValue {
+            if left.isNaN || right.isNaN { return nil }
             if left == right { return .orderedSame }
             return left < right ? .orderedAscending : .orderedDescending
         }

@@ -41,6 +41,11 @@ private extension TDJSONValue {
             return value
         case .int(let value):
             return Double(value)
+        case .string(let text):
+            guard let value = td_non_finite_value(text) else {
+                throw td_invalid_argument("double columns must contain numbers or nulls")
+            }
+            return value
         default:
             throw td_invalid_argument("double columns must contain numbers or nulls")
         }
@@ -65,6 +70,11 @@ private extension TDJSONValue {
             return Date(timeIntervalSince1970: value)
         case .int(let value):
             return Date(timeIntervalSince1970: Double(value))
+        case .string(let text):
+            guard let value = td_non_finite_value(text) else {
+                throw td_invalid_argument("date columns must contain timestamps or nulls")
+            }
+            return Date(timeIntervalSince1970: value)
         default:
             throw td_invalid_argument("date columns must contain timestamps or nulls")
         }

@@ -81,6 +81,7 @@ See [COVERAGE.md](COVERAGE.md) for the API matrix and [COVERAGE_AUDIT.md](COVERA
 - `TabularData` aborts the process on unknown column names and mistyped values. The bridge checks column names, join key types, grouping column types and cell values before every such call and returns `TabularDataError::InvalidArgument` instead. Appended values are converted to the column's element type (for example an integer into a `Double` or `Float` column) or rejected.
 - File paths must be valid UTF-8. CSV and JSON input must be valid UTF-8 and is passed to `TabularData` as bytes.
 - JSON output rejects frames with values JSON cannot represent (NaN, infinity, Data, and dates or data inside array and object columns) with `InvalidArgument`; CSV output writes them as text.
+- NaN and infinite values cross the bridge as `"NaN"`, `"Infinity"` and `"-Infinity"`, which is also how `rows_json` shows them. Filters treat NaN as unordered, and sorting puts nulls first and NaN after every number.
 - An ordered group aggregate needs a result column name (`count`, `sum(x)`, `mean(x)`, `quantile(x)`, `min(x)`, `max(x)`) that no grouping column already uses.
 
 ## License

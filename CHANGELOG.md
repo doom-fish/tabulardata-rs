@@ -24,6 +24,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - CSV and JSON input keeps interior NUL bytes, and bridge error messages escape interior NULs instead of being cut short.
 - Paths that are not valid UTF-8 are rejected instead of being converted lossily.
 - The coverage audits explain their conflicting symbol counts (641 and 484) and what their 100% means.
+- NaN no longer matches `gt`, `gte`, `lt`, `lte` or `between` filters, and sorting puts nulls first and NaN after every number instead of producing an inconsistent order.
+- NaN and infinite values cross the bridge in both directions as `"NaN"`, `"Infinity"` and `"-Infinity"`: `rows`, `column`, `any_column`, `column_slice` and `rows_json` no longer fail on frames that hold them, and `Column::doubles`, `Column::dates`, `AnyValue::Double` and `AnyValue::Date` accept them.
 - New `validation_tests` cover the error paths.
 
 ### Changed
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `sorted_by` converts each key column once and rebuilds the frame with `append(row:)`; `insert_row` and `replace_row` insert one row instead of rebuilding the frame; `append_rows_of` uses `append(rowsOf:)` when the schemas match; `json_bytes` returns the bytes directly instead of a JSON array of integers; CSV and JSON input is passed as bytes instead of three string copies.
 - **Breaking:** validation failures report `TabularDataError::InvalidArgument`; several bridge errors that used to report `FrameworkError` now report `InvalidArgument`.
 - **Breaking:** raw FFI: `td_dataframe_from_csv_data` and `td_dataframe_from_json_data` take a byte pointer and length, `td_dataframe_json_data_json` is replaced by `td_dataframe_json_data` (which returns a status and writes the buffer and its length through out-pointers), and `td_dataframe_append_rows_of` is new.
+- **Breaking:** `AnyValue::Double` and `AnyValue::Date` serialize NaN and infinite values as the strings `"NaN"`, `"Infinity"` and `"-Infinity"` instead of `null`, and deserialize them back; `rows_json` reports them the same way.
 - Requires `apple-cf` 0.11; `rust-version` is 1.82.
 
 ## [0.2.6] - 2026-05-18

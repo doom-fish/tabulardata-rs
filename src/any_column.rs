@@ -23,11 +23,11 @@ pub enum AnyValue {
     /// Wraps the `TabularData` `AnyValue.int` case.
     Int(i64),
     /// Wraps the `TabularData` `AnyValue.double` case.
-    Double(f64),
+    Double(#[serde(with = "crate::private::json_float")] f64),
     /// Wraps the `TabularData` `AnyValue.bool` case.
     Bool(bool),
     /// Wraps the `TabularData` `AnyValue.date` case.
-    Date(f64),
+    Date(#[serde(with = "crate::private::json_float")] f64),
     /// Wraps the `TabularData` `AnyValue.data` case.
     Data(String),
     /// Wraps the `TabularData` `AnyValue.array` case.

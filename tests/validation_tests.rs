@@ -353,3 +353,72 @@ fn ordered_aggregates_reject_result_names_taken_by_grouping_columns() -> Result<
     assert_eq!(sums, [AnyValue::Int(4), AnyValue::Int(2)]);
     Ok(())
 }
+
+#[test]
+fn nan_values_fail_ordered_comparisons_and_sort_after_numbers() -> Result<(), TabularDataError> {
+    let quantiles = quantiles_with_nan()?;
+    assert_eq!(quantiles.row_count(), 4);
+    assert_eq!(quantiles.filtered(&Filter::gt("quantile(v)", 0.0))?.row_count(), 2);
+    assert_eq!(quantiles.filtered(&Filter::gte("quantile(v)", 0.0))?.row_count(), 2);
+    assert_eq!(quantiles.filtered(&Filter::lt("quantile(v)", 10.0))?.row_count(), 2);
+    assert_eq!(quantiles.filtered(&Filter::ne("quantile(v)", 1.0))?.row_count(), 3);
+
+    let ascending = quantiles.sorted_by(&[SortKey::ascending("quantile(v)")])?;
+    let keys = ascending.column("k")?.values();
+    assert_eq!(keys[..2], [AnyValue::from("d"), AnyValue::from("b")]);
+    let descending = quantiles.sorted_by(&[SortKey::descending("quantile(v)")])?;
+    let keys = descending.column("k")?.values();
+    assert_eq!(keys[2..], [AnyValue::from("b"), AnyValue::from("d")]);
+    assert_eq!(
+        descending.slice_rows(0..2)?.filtered(&Filter::lt("quantile(v)", f64::MAX))?.row_count(),
+        0
+    );
+    Ok(())
+}
+
+fn nan_count(values: &[AnyValue]) -> usize {
+    values
+        .iter()
+        .filter(|value| matches!(value, AnyValue::Double(number) if number.is_nan()))
+        .count()
+}
+
+#[test]
+fn non_finite_doubles_cross_the_bridge_in_both_directions() -> Result<(), TabularDataError> {
+    let summary = DataFrame::from_columns(&[Column::doubles("v", vec![Some(1.0)])])?.summary()?;
+    let summary_values: Vec<AnyValue> = summary
+        .rows()?
+        .into_iter()
+        .flat_map(|row| row.values.into_values())
+        .collect();
+    assert!(nan_count(&summary_values) > 0, "{summary_values:?}");
+
+    let quantiles = quantiles_with_nan()?;
+    assert_eq!(nan_count(&quantiles.column("quantile(v)")?.values()), 2);
+    assert_eq!(nan_count(&quantiles.any_column("quantile(v)")?.values), 2);
+    assert_eq!(nan_count(&quantiles.column_slice("quantile(v)", 0..4)?.values), 2);
+    let rows_json = serde_json::to_string(&quantiles.rows_json()?).unwrap_or_default();
+    assert_eq!(rows_json.matches("\"NaN\"").count(), 2, "{rows_json}");
+
+    let values = vec![Some(f64::NAN), Some(f64::INFINITY), Some(f64::NEG_INFINITY), Some(1.5), None];
+    let frame = DataFrame::from_columns(&[Column::doubles("x", values)])?;
+    let read = frame.column("x")?.values();
+    assert!(matches!(read[0], AnyValue::Double(number) if number.is_nan()));
+    assert_eq!(read[1..], [
+        AnyValue::Double(f64::INFINITY),
+        AnyValue::Double(f64::NEG_INFINITY),
+        AnyValue::Double(1.5),
+        AnyValue::Null
+    ]);
+    assert_eq!(frame.filtered(&Filter::eq("x", f64::NAN))?.row_count(), 0);
+    assert_eq!(frame.filtered(&Filter::eq("x", f64::INFINITY))?.row_count(), 1);
+    assert_eq!(frame.filtered(&Filter::gt("x", 1.0))?.row_count(), 2);
+
+    let mut rows = DataFrame::from_rows(&[AnyRow::new().with_value("x", f64::NAN)])?;
+    rows.append_row(&AnyRow::new().with_value("x", f64::NEG_INFINITY))?;
+    assert!(rows.contains_column_of_type("x", "Double")?);
+    let read = rows.column("x")?.values();
+    assert_eq!(nan_count(&read), 1);
+    assert_eq!(read[1], AnyValue::Double(f64::NEG_INFINITY));
+    Ok(())
+}
