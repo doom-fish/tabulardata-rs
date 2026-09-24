@@ -201,6 +201,13 @@ public func td_dataframe_exploding_column(
         exploded.replaceColumn(column.name, with: elementColumn)
         var result = td_empty_frame(like: frame)
         result.replaceColumn(column.name, with: elementColumn.prototype.makeColumn(capacity: 0))
+        let sameSchema = exploded.columns.count == result.columns.count
+            && zip(exploded.columns, result.columns).allSatisfy {
+                $0.name == $1.name && $0.wrappedElementType == $1.wrappedElementType
+            }
+        guard sameSchema else {
+            throw td_framework_error("exploding '\(column.name)' changed the other columns of the data frame")
+        }
         result.append(rowsOf: exploded)
         outFrame.pointee = td_retain(TDDataFrameBox(frame: result))
         return TDR_OK
