@@ -124,7 +124,7 @@ private extension TDJSONValue {
     }
 }
 
-private func td_make_any_column(_ payload: TDColumnPayload) throws -> AnyColumn {
+func td_make_any_column(_ payload: TDColumnPayload) throws -> AnyColumn {
     switch payload.kind {
     case "string":
         return Column(name: payload.name, contents: try payload.values.map { try $0.optionalString() })
@@ -381,15 +381,7 @@ public func td_dataframe_append_column(
 
     do {
         let payload = try td_decode_json(columnJSON, as: TDColumnPayload.self)
-        guard box.frame.indexOfColumn(payload.name) == nil else {
-            throw td_invalid_argument("there is already a column named '\(payload.name)'")
-        }
-        guard box.frame.columns.isEmpty || payload.values.count == box.frame.rows.count else {
-            throw td_invalid_argument(
-                "column '\(payload.name)' has \(payload.values.count) values but the data frame has \(box.frame.rows.count) rows"
-            )
-        }
-        box.frame.append(column: try td_make_any_column(payload))
+        try td_insert_column(payload, at: box.frame.columns.count, into: &box.frame)
         return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)

@@ -13,7 +13,7 @@ Safe, idiomatic Rust bindings for Apple's [TabularData](https://developer.apple.
 - **Grouping, group summaries, splits + joins** — counts, sums, means, quantiles, group-level summaries/filtering/mapping/random splits, and inner/left/right/full joins.
 - **CSV + JSON + `SFrame` IO** — configurable CSV/JSON readers and writers, row/column projection, type hints, in-memory string/byte representations, and `SFrame` directory imports.
 - **Shaped data helpers** — pure-Rust `ShapedData<T>` mirrors the shaped export family exposed by the framework.
-- **18 worked examples + 19 test suites** — including `validation_tests`, which covers the error paths.
+- **18 worked examples + 20 test suites** — including `validation_tests`, which covers the error paths, and `frame_operation_tests`, which runs every frame operation against every column type and against aliases.
 
 ## Requirements
 
@@ -77,7 +77,7 @@ See [COVERAGE.md](COVERAGE.md) for the API matrix and [COVERAGE_AUDIT.md](COVERA
 
 - `TabularData` is a Swift-only framework, so this crate is implemented through a `SwiftPM` bridge instead of Objective-C headers.
 - Typed `Column` construction covers `String`, `Int`, `Int32`, `Float`, `Double`, `Bool`, `Date`, and `Data`; heterogeneous APIs use `AnyValue`/`AnyRow`.
-- Filtering, sorting, and grouping are described in Rust and executed in Swift through JSON payloads instead of bridged closures; higher-level mutation and group-summary helpers are composed from those primitives in Rust.
+- Filtering, sorting, and grouping are described in Rust and executed in Swift through JSON payloads instead of bridged closures. Column insertion, replacement, removal and transforms, row masks and explodes run on `TabularData`'s own operations, so column types and aliases survive; transform closures run in Rust over the column's values. Group-summary helpers are composed from these primitives in Rust.
 - `TabularData` aborts the process on unknown column names and mistyped values. The bridge checks column names, join key types, grouping column types and cell values before every such call and returns `TabularDataError::InvalidArgument` instead. Appended values are converted to the column's element type (for example an integer into a `Double` or `Float` column) or rejected.
 - File paths must be valid UTF-8. CSV and JSON input must be valid UTF-8 and is passed to `TabularData` as bytes.
 - JSON output rejects frames with values JSON cannot represent (NaN, infinity, Data, and dates or data inside array and object columns) with `InvalidArgument`; CSV output writes them as text.

@@ -29,6 +29,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `slice_rows`, `prefix_rows`, `suffix_rows` and `column_slice` treat bounds above `isize::MAX` as the end of the frame instead of returning nothing.
 - `ColumnSlice::range`, `AnyColumn::slice` and `Column::slice` return an empty slice for a reversed range instead of panicking, and `ColumnSlice::range` and `ColumnSlice::distinct` no longer panic when `indices` is shorter than `values`.
 - `DataFrame::column`, `AnyColumn::to_column` and `ColumnSlice::to_column` read Float and Int32 columns, such as CSV columns read with `CSVType::Float`, instead of failing or turning them into Double columns.
+- `mask_rows`, `filtered_by_column`, `insert_column`, `replace_column`, `remove_column`, `transform_column`, `transform_non_null_column`, `combine_columns2`, `combine_columns3`, `explode_column` and `exploding_column` run on `TabularData`'s own mask, insert, replace, remove and explode operations. They used to rebuild the whole frame in Rust from rows or typed columns, which turned Float and Int32 columns into Double and Int columns, failed on frames holding array, object or other columns that `Column` cannot represent, and dropped every alias. Column types and aliases now survive, including when the column is addressed through an alias.
+- `insert_column` and `replace_column` reject a name that is already taken by a column or an alias instead of letting `TabularData` rename the column to `<name>.1` or silently move the alias, and `remove_column` through an alias removes that alias instead of leaving it dangling.
+- `sorted_by`, `sort_by`, and `random_split` and `stratified_split` with a proportion of 0 or 1 keep the frame's aliases.
+- `from_rows` accepts array and object values and creates array and object columns, so `DataFrame::from_rows(&frame.rows()?)` works for frames read from JSON.
 - New `validation_tests` cover the error paths.
 
 ### Changed
@@ -37,8 +41,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Breaking:** validation failures report `TabularDataError::InvalidArgument`; several bridge errors that used to report `FrameworkError` now report `InvalidArgument`.
 - **Breaking:** raw FFI: `td_dataframe_from_csv_data` and `td_dataframe_from_json_data` take a byte pointer and length, `td_dataframe_json_data_json` is replaced by `td_dataframe_json_data` (which returns a status and writes the buffer and its length through out-pointers), and `td_dataframe_append_rows_of` is new.
 - **Breaking:** `AnyValue::Double` and `AnyValue::Date` serialize NaN and infinite values as the strings `"NaN"`, `"Infinity"` and `"-Infinity"` instead of `null`, and deserialize them back; `rows_json` reports them the same way.
+- **Breaking:** `remove_column` returns the removed column as an `AnyColumn`, which can hold every element type, instead of a `Column`.
+- **Breaking:** `transform_column` and `transform_non_null_column` keep the column's element type and convert the closure's values with the same rules as `append_row` (for example 2.0 into an Int column, but no longer a String into a Data column); a value that does not convert returns `InvalidArgument` and leaves the column unchanged.
+- **Breaking:** `explode_column` and `exploding_column` follow `TabularData`: rows whose array is empty or null are dropped instead of kept with a null. The exploded column takes the arrays' element type (String, Int, Double, Bool, Date, Data, array or object, with Int and Double widened to Double) instead of going through `from_rows`; arrays that mix other kinds, and columns that do not hold arrays, return `InvalidArgument` instead of being left unchanged.
 - **Breaking:** `ColumnData` is `#[non_exhaustive]` and gains `Int32s` and `Floats`, built with `Column::int32s` and `Column::floats`. `Column::from_any_values`, `Column::with_capacity` and `ColumnData::with_capacity` map `Float` to `Floats` instead of `Doubles`, and `Int32` to `Int32s` instead of an error or a String column.
 - Requires `apple-cf` 0.11; `rust-version` is 1.82.
+
+### Added
+
+- Raw FFI: `td_dataframe_mask_rows`, `td_dataframe_insert_column_json`, `td_dataframe_replace_column_json`, `td_dataframe_remove_column_json`, `td_dataframe_transform_column_json` and `td_dataframe_exploding_column`.
+- `frame_operation_tests` checks every frame operation above against Int, Int32, Float, Double, String, Bool, Date, Data, array and object columns and against aliases.
 
 ## [0.2.6] - 2026-05-18
 

@@ -67,7 +67,7 @@ fn dataframe_mutation_helpers_work() -> Result<(), Box<dyn std::error::Error>> {
     ]"#;
     let mut exploded = DataFrame::from_json_string(json, JSONReadingOptions::new())?;
     exploded.explode_column("tags")?;
-    assert_eq!(exploded.row_count(), 4);
+    assert_eq!(exploded.row_count(), 3);
     let tags: Vec<String> = exploded
         .rows()?
         .into_iter()

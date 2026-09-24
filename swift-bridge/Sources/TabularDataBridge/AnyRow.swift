@@ -1,7 +1,7 @@
 import Foundation
 import TabularData
 
-private func td_inferred_column(name: String, values: [TDAnyValue]) throws -> AnyColumn {
+func td_inferred_column(name: String, values: [TDAnyValue]) throws -> AnyColumn {
     var kinds = Set(values.map(\.kindName))
     kinds.remove("null")
     if kinds == ["int", "double"] {
@@ -25,8 +25,12 @@ private func td_inferred_column(name: String, values: [TDAnyValue]) throws -> An
         return Column<Date>(name: name, capacity: 0).eraseToAnyColumn()
     case "data":
         return Column<Data>(name: name, capacity: 0).eraseToAnyColumn()
+    case "array":
+        return Column<[Any?]>(name: name, capacity: 0).eraseToAnyColumn()
+    case "object":
+        return Column<[String: Any?]>(name: name, capacity: 0).eraseToAnyColumn()
     default:
-        throw td_invalid_argument("from_rows supports scalar, date, and data cell values only")
+        throw td_invalid_argument("column '\(name)' holds values of an unsupported kind")
     }
 }
 

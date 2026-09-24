@@ -283,6 +283,43 @@ unsafe extern "C" {
         other: *mut c_void,
         error_out: *mut *mut c_char,
     ) -> i32;
+    pub fn td_dataframe_mask_rows(
+        frame: *mut c_void,
+        mask: *const bool,
+        length: usize,
+        out_frame: *mut *mut c_void,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_insert_column_json(
+        frame: *mut c_void,
+        index: usize,
+        column_json: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_replace_column_json(
+        frame: *mut c_void,
+        column_name: *const c_char,
+        column_json: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_remove_column_json(
+        frame: *mut c_void,
+        column_name: *const c_char,
+        out_column_json: *mut *mut c_char,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_transform_column_json(
+        frame: *mut c_void,
+        column_name: *const c_char,
+        values_json: *const c_char,
+        error_out: *mut *mut c_char,
+    ) -> i32;
+    pub fn td_dataframe_exploding_column(
+        frame: *mut c_void,
+        column_name: *const c_char,
+        out_frame: *mut *mut c_void,
+        error_out: *mut *mut c_char,
+    ) -> i32;
     pub fn td_dataframe_description(frame: *mut c_void, error_out: *mut *mut c_char)
         -> *mut c_char;
     pub fn td_dataframe_format_json(

@@ -79,7 +79,7 @@ func td_non_finite_value(_ text: String) -> Double? {
     }
 }
 
-func td_codable_json_string<T: Encodable>(_ value: T) -> String {
+func td_codable_json<T: Encodable>(_ value: T) throws -> String {
     let encoder = JSONEncoder()
     encoder.outputFormatting = [.sortedKeys]
     encoder.nonConformingFloatEncodingStrategy = .convertToString(
@@ -87,12 +87,14 @@ func td_codable_json_string<T: Encodable>(_ value: T) -> String {
         negativeInfinity: TD_NEGATIVE_INFINITY,
         nan: TD_NAN
     )
-    do {
-        let data = try encoder.encode(value)
-        return String(data: data, encoding: .utf8) ?? "null"
-    } catch {
-        return "null"
+    guard let text = String(data: try encoder.encode(value), encoding: .utf8) else {
+        throw td_framework_error("encoded JSON is not valid UTF-8")
     }
+    return text
+}
+
+func td_codable_json_string<T: Encodable>(_ value: T) -> String {
+    (try? td_codable_json(value)) ?? "null"
 }
 
 @inline(__always)
@@ -105,6 +107,12 @@ func td_write_error(
 
 func td_invalid_argument(_ message: String) -> NSError {
     NSError(domain: "tabulardata-rs", code: Int(TDR_INVALID_ARGUMENT), userInfo: [
+        NSLocalizedDescriptionKey: message,
+    ])
+}
+
+func td_framework_error(_ message: String) -> NSError {
+    NSError(domain: "tabulardata-rs", code: Int(TDR_FRAMEWORK_ERROR), userInfo: [
         NSLocalizedDescriptionKey: message,
     ])
 }
@@ -617,6 +625,5 @@ func td_row_objects(_ frame: DataFrame) -> [[String: Any]] {
 }
 
 func td_empty_frame(like frame: DataFrame) -> DataFrame {
-    let columns = frame.columns.map { $0.prototype.makeColumn(capacity: 0) }
-    return DataFrame(columns: columns)
+    DataFrame(frame[0 ..< 0])
 }

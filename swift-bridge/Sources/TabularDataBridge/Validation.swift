@@ -24,15 +24,23 @@ func td_require_unique_columns(_ names: [String], context: String) throws {
     }
 }
 
+func td_column_index(
+    _ name: String,
+    in frame: DataFrame,
+    label: String = "the data frame"
+) throws -> Int {
+    guard let index = frame.indexOfColumn(name) else {
+        throw td_invalid_argument("\(label) has no column named '\(name)'")
+    }
+    return index
+}
+
 func td_column_type(
     _ name: String,
     in frame: DataFrame,
     label: String = "the data frame"
 ) throws -> Any.Type {
-    guard let index = frame.indexOfColumn(name) else {
-        throw td_invalid_argument("\(label) has no column named '\(name)'")
-    }
-    return frame.columns[index].wrappedElementType
+    frame.columns[try td_column_index(name, in: frame, label: label)].wrappedElementType
 }
 
 func td_type_label(_ type: Any.Type) -> String {

@@ -1,8 +1,10 @@
 use crate::any_column::{AnyColumn, AnyValue};
 use crate::any_row::AnyRow;
-use crate::column::Column;
+use crate::column::{encode_column_json, Column};
 use crate::dataframe::DataFrame;
-use crate::error::TabularDataError;
+use crate::error::{from_swift, TabularDataError};
+use crate::ffi;
+use crate::private::{decode_json, encode_json_cstring, to_cstring};
 
 impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.tryClone` counterpart.
@@ -46,23 +48,22 @@ impl DataFrame {
 
     /// Wraps the `TabularData` `DataFrame.maskRows` counterpart.
     pub fn mask_rows(&self, mask: &[bool]) -> Result<Self, TabularDataError> {
-        if mask.len() != self.row_count() {
-            return Err(TabularDataError::InvalidArgument(format!(
-                "row mask length {} does not match row count {}",
+        let mut raw = core::ptr::null_mut();
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_mask_rows(
+                self.as_raw(),
+                mask.as_ptr(),
                 mask.len(),
-                self.row_count()
-            )));
+                &raw mut raw,
+                &raw mut error,
+            )
+        };
+        if status == ffi::status::OK {
+            Ok(Self::from_raw(raw))
+        } else {
+            Err(from_swift(status, error))
         }
-        let rows: Vec<AnyRow> = self
-            .rows()?
-            .into_iter()
-            .zip(mask.iter().copied())
-            .filter_map(|(row, include)| include.then_some(row))
-            .collect();
-        if rows.is_empty() {
-            return self.slice_rows(0..0);
-        }
-        ordered_frame_from_rows(&rows, &self.column_names()?)
     }
 
     /// Wraps the `TabularData` `DataFrame.filteredByColumn` counterpart.
@@ -100,12 +101,12 @@ impl DataFrame {
     pub fn append_rows_of(&mut self, other: &Self) -> Result<(), TabularDataError> {
         let mut error = core::ptr::null_mut();
         let status = unsafe {
-            crate::ffi::td_dataframe_append_rows_of(self.as_raw(), other.as_raw(), &raw mut error)
+            ffi::td_dataframe_append_rows_of(self.as_raw(), other.as_raw(), &raw mut error)
         };
-        if status == crate::ffi::status::OK {
+        if status == ffi::status::OK {
             Ok(())
         } else {
-            Err(crate::error::from_swift(status, error))
+            Err(from_swift(status, error))
         }
     }
 
@@ -116,43 +117,61 @@ impl DataFrame {
 
     /// Wraps the `TabularData` `DataFrame.insertColumn` counterpart.
     pub fn insert_column(&mut self, index: usize, column: &Column) -> Result<(), TabularDataError> {
-        self.validate_column_length(column.len())?;
-        let mut columns = self.owned_columns()?;
-        if index > columns.len() {
-            return Err(TabularDataError::InvalidArgument(format!(
-                "column index {index} is out of bounds"
-            )));
+        let column = to_cstring(&encode_column_json(column)?)?;
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_insert_column_json(
+                self.as_raw(),
+                index,
+                column.as_ptr(),
+                &raw mut error,
+            )
+        };
+        if status == ffi::status::OK {
+            Ok(())
+        } else {
+            Err(from_swift(status, error))
         }
-        columns.insert(index, column.clone());
-        self.rebuild_from_columns(&columns)
     }
 
     /// Wraps the `TabularData` `DataFrame.replaceColumn` counterpart.
     pub fn replace_column(&mut self, name: &str, column: &Column) -> Result<(), TabularDataError> {
-        self.validate_column_length(column.len())?;
-        let mut columns = self.owned_columns()?;
-        let index = columns
-            .iter()
-            .position(|existing| existing.name == name)
-            .ok_or_else(|| {
-                TabularDataError::InvalidArgument(format!("no column named '{name}'"))
-            })?;
-        columns[index] = column.clone();
-        self.rebuild_from_columns(&columns)
+        let name = to_cstring(name)?;
+        let column = to_cstring(&encode_column_json(column)?)?;
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_replace_column_json(
+                self.as_raw(),
+                name.as_ptr(),
+                column.as_ptr(),
+                &raw mut error,
+            )
+        };
+        if status == ffi::status::OK {
+            Ok(())
+        } else {
+            Err(from_swift(status, error))
+        }
     }
 
     /// Wraps the `TabularData` `DataFrame.removeColumn` counterpart.
-    pub fn remove_column(&mut self, name: &str) -> Result<Column, TabularDataError> {
-        let mut columns = self.owned_columns()?;
-        let index = columns
-            .iter()
-            .position(|existing| existing.name == name)
-            .ok_or_else(|| {
-                TabularDataError::InvalidArgument(format!("no column named '{name}'"))
-            })?;
-        let removed = columns.remove(index);
-        self.rebuild_from_columns(&columns)?;
-        Ok(removed)
+    pub fn remove_column(&mut self, name: &str) -> Result<AnyColumn, TabularDataError> {
+        let name = to_cstring(name)?;
+        let mut payload = core::ptr::null_mut();
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_remove_column_json(
+                self.as_raw(),
+                name.as_ptr(),
+                &raw mut payload,
+                &raw mut error,
+            )
+        };
+        if status == ffi::status::OK {
+            decode_json(payload)
+        } else {
+            Err(from_swift(status, error))
+        }
     }
 
     /// Wraps the `TabularData` `DataFrame.transformColumn` counterpart.
@@ -164,10 +183,28 @@ impl DataFrame {
     where
         F: FnMut(&AnyValue) -> AnyValue,
     {
-        let column = self.any_column(name)?;
-        let values: Vec<AnyValue> = column.values.iter().map(&mut transform).collect();
-        let replacement = Column::from_any_values(name.to_string(), &column.type_name, &values)?;
-        self.replace_column(name, &replacement)
+        let values: Vec<AnyValue> = self
+            .any_column(name)?
+            .values
+            .iter()
+            .map(&mut transform)
+            .collect();
+        let name = to_cstring(name)?;
+        let values = encode_json_cstring(&values, "transformed values")?;
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_transform_column_json(
+                self.as_raw(),
+                name.as_ptr(),
+                values.as_ptr(),
+                &raw mut error,
+            )
+        };
+        if status == ffi::status::OK {
+            Ok(())
+        } else {
+            Err(from_swift(status, error))
+        }
     }
 
     /// Wraps the `TabularData` `DataFrame.transformNonNullColumn` counterpart.
@@ -256,60 +293,21 @@ impl DataFrame {
 
     /// Wraps the `TabularData` `DataFrame.explodingColumn` counterpart.
     pub fn exploding_column(&self, name: &str) -> Result<Self, TabularDataError> {
-        let column_names = self.column_names()?;
-        let mut rows = Vec::new();
-        for row in self.rows()? {
-            match row.get(name).cloned().unwrap_or_default() {
-                AnyValue::Array(values) if !values.is_empty() => {
-                    for value in values {
-                        let mut expanded = row.clone();
-                        let _ = expanded.insert(name.to_string(), value);
-                        rows.push(expanded);
-                    }
-                }
-                AnyValue::Array(_) => {
-                    let mut expanded = row.clone();
-                    let _ = expanded.insert(name.to_string(), AnyValue::Null);
-                    rows.push(expanded);
-                }
-                _ => rows.push(row),
-            }
-        }
-        if rows.is_empty() {
-            return self.slice_rows(0..0);
-        }
-        ordered_frame_from_rows(&rows, &column_names)
-    }
-
-    fn owned_columns(&self) -> Result<Vec<Column>, TabularDataError> {
-        self.column_names()?
-            .into_iter()
-            .map(|name| self.column(&name))
-            .collect()
-    }
-
-    fn rebuild_from_columns(&mut self, columns: &[Column]) -> Result<(), TabularDataError> {
-        let frame = if columns.is_empty() {
-            let mut frame = Self::new()?;
-            for _ in 0..self.row_count() {
-                frame.append_empty_row()?;
-            }
-            frame
-        } else {
-            Self::from_columns(columns)?
+        let name = to_cstring(name)?;
+        let mut raw = core::ptr::null_mut();
+        let mut error = core::ptr::null_mut();
+        let status = unsafe {
+            ffi::td_dataframe_exploding_column(
+                self.as_raw(),
+                name.as_ptr(),
+                &raw mut raw,
+                &raw mut error,
+            )
         };
-        self.replace_with(frame);
-        Ok(())
-    }
-
-    fn validate_column_length(&self, len: usize) -> Result<(), TabularDataError> {
-        if self.column_count() == 0 || self.row_count() == len {
-            Ok(())
+        if status == ffi::status::OK {
+            Ok(Self::from_raw(raw))
         } else {
-            Err(TabularDataError::InvalidArgument(format!(
-                "column length {len} does not match row count {}",
-                self.row_count()
-            )))
+            Err(from_swift(status, error))
         }
     }
 
@@ -325,14 +323,6 @@ impl DataFrame {
             self.insert_column(self.column_count(), &column)
         }
     }
-}
-
-fn ordered_frame_from_rows(
-    rows: &[AnyRow],
-    column_names: &[String],
-) -> Result<DataFrame, TabularDataError> {
-    let frame = DataFrame::from_rows(rows)?;
-    frame.select_columns(column_names)
 }
 
 fn infer_type(values: &[AnyValue]) -> &'static str {
