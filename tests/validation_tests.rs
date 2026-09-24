@@ -376,6 +376,34 @@ fn nan_values_fail_ordered_comparisons_and_sort_after_numbers() -> Result<(), Ta
     Ok(())
 }
 
+#[test]
+#[allow(clippy::reversed_empty_ranges)]
+fn huge_and_reversed_ranges_clamp_instead_of_failing() -> Result<(), TabularDataError> {
+    let frame = common::fixture_frame()?;
+    assert_eq!(frame.slice_rows(1..usize::MAX)?.row_count(), 3);
+    assert_eq!(frame.prefix_rows(usize::MAX)?.row_count(), 4);
+    assert_eq!(frame.suffix_rows(usize::MAX)?.row_count(), 4);
+    assert_eq!(frame.column_slice("id", 2..usize::MAX)?.len(), 2);
+    assert_eq!(frame.slice_rows(3..1)?.row_count(), 0);
+
+    assert!(frame.any_column("id")?.slice(3..1).is_empty());
+    assert!(frame.column("id")?.slice(3..1).is_empty());
+    let slice = ColumnSlice::new(
+        "x",
+        "Int",
+        vec![AnyValue::Int(1), AnyValue::Int(1), AnyValue::Int(2)],
+        true,
+        vec![7],
+    );
+    assert!(slice.range(2..1).is_empty());
+    assert_eq!(slice.range(0..3).indices, [7]);
+    assert!(slice.range(1..3).indices.is_empty());
+    let distinct = slice.distinct();
+    assert_eq!(distinct.values, [AnyValue::Int(1), AnyValue::Int(2)]);
+    assert_eq!(distinct.indices, [7]);
+    Ok(())
+}
+
 fn nan_count(values: &[AnyValue]) -> usize {
     values
         .iter()

@@ -4,8 +4,8 @@ import TabularData
 @_cdecl("td_dataframe_slice_rows")
 public func td_dataframe_slice_rows(
     _ framePtr: UnsafeMutableRawPointer?,
-    _ start: Int,
-    _ end: Int,
+    _ start: UInt,
+    _ end: UInt,
     _ outFrame: UnsafeMutablePointer<UnsafeMutableRawPointer?>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> Int32 {
@@ -15,8 +15,9 @@ public func td_dataframe_slice_rows(
         return TDR_INVALID_ARGUMENT
     }
 
-    let lowerBound = max(0, min(start, box.frame.rows.count))
-    let upperBound = max(lowerBound, min(end, box.frame.rows.count))
+    let rowCount = box.frame.rows.count
+    let lowerBound = min(Int(clamping: start), rowCount)
+    let upperBound = max(lowerBound, min(Int(clamping: end), rowCount))
     outFrame.pointee = td_retain(TDDataFrameBox(frame: DataFrame(box.frame[lowerBound ..< upperBound])))
     _ = errorOut
     return TDR_OK
@@ -25,7 +26,7 @@ public func td_dataframe_slice_rows(
 @_cdecl("td_dataframe_prefix_rows")
 public func td_dataframe_prefix_rows(
     _ framePtr: UnsafeMutableRawPointer?,
-    _ length: Int,
+    _ length: UInt,
     _ outFrame: UnsafeMutablePointer<UnsafeMutableRawPointer?>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> Int32 {
@@ -34,14 +35,14 @@ public func td_dataframe_prefix_rows(
         outFrame.pointee = nil
         return TDR_INVALID_ARGUMENT
     }
-    outFrame.pointee = td_retain(TDDataFrameBox(frame: DataFrame(frame.prefix(max(0, length)))))
+    outFrame.pointee = td_retain(TDDataFrameBox(frame: DataFrame(frame.prefix(Int(clamping: length)))))
     return TDR_OK
 }
 
 @_cdecl("td_dataframe_suffix_rows")
 public func td_dataframe_suffix_rows(
     _ framePtr: UnsafeMutableRawPointer?,
-    _ length: Int,
+    _ length: UInt,
     _ outFrame: UnsafeMutablePointer<UnsafeMutableRawPointer?>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> Int32 {
@@ -50,7 +51,7 @@ public func td_dataframe_suffix_rows(
         outFrame.pointee = nil
         return TDR_INVALID_ARGUMENT
     }
-    outFrame.pointee = td_retain(TDDataFrameBox(frame: DataFrame(frame.suffix(max(0, length)))))
+    outFrame.pointee = td_retain(TDDataFrameBox(frame: DataFrame(frame.suffix(Int(clamping: length)))))
     return TDR_OK
 }
 

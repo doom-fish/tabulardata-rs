@@ -75,14 +75,14 @@ impl ColumnSlice {
     /// Wraps the `TabularData` `ColumnSlice.range` counterpart.
     #[must_use]
     pub fn range(&self, range: Range<usize>) -> Self {
-        let start = range.start.min(self.values.len());
         let end = range.end.min(self.values.len());
+        let start = range.start.min(end);
         Self::new(
             self.name.clone(),
             self.type_name.clone(),
             self.values[start..end].to_vec(),
             self.contiguous,
-            self.indices[start..end].to_vec(),
+            self.indices.iter().skip(start).take(end - start).copied().collect(),
         )
     }
 
@@ -96,7 +96,7 @@ impl ColumnSlice {
             let key = value.stable_key();
             if seen.insert(key) {
                 values.push(value.clone());
-                indices.push(self.indices[index]);
+                indices.extend(self.indices.get(index).copied());
             }
         }
         Self::new(

@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The coverage audits explain their conflicting symbol counts (641 and 484) and what their 100% means.
 - NaN no longer matches `gt`, `gte`, `lt`, `lte` or `between` filters, and sorting puts nulls first and NaN after every number instead of producing an inconsistent order.
 - NaN and infinite values cross the bridge in both directions as `"NaN"`, `"Infinity"` and `"-Infinity"`: `rows`, `column`, `any_column`, `column_slice` and `rows_json` no longer fail on frames that hold them, and `Column::doubles`, `Column::dates`, `AnyValue::Double` and `AnyValue::Date` accept them.
+- `slice_rows`, `prefix_rows`, `suffix_rows` and `column_slice` treat bounds above `isize::MAX` as the end of the frame instead of returning nothing.
+- `ColumnSlice::range`, `AnyColumn::slice` and `Column::slice` return an empty slice for a reversed range instead of panicking, and `ColumnSlice::range` and `ColumnSlice::distinct` no longer panic when `indices` is shorter than `values`.
 - New `validation_tests` cover the error paths.
 
 ### Changed

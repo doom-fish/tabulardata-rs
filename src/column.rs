@@ -363,8 +363,8 @@ impl Column {
     #[must_use]
     pub fn slice(&self, range: std::ops::Range<usize>) -> ColumnSlice {
         let values = self.values();
-        let start = range.start.min(values.len());
         let end = range.end.min(values.len());
+        let start = range.start.min(end);
         ColumnSlice::new(
             self.name.clone(),
             self.type_name().to_string(),

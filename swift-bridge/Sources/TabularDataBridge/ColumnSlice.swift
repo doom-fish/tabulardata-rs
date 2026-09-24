@@ -5,8 +5,8 @@ import TabularData
 public func td_dataframe_column_slice_json(
     _ framePtr: UnsafeMutableRawPointer?,
     _ columnName: UnsafePointer<CChar>?,
-    _ start: Int,
-    _ end: Int,
+    _ start: UInt,
+    _ end: UInt,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
 ) -> UnsafeMutablePointer<CChar>? {
     guard let box = td_box(framePtr), let columnName else {
@@ -21,8 +21,8 @@ public func td_dataframe_column_slice_json(
     }
 
     let column = box.frame[name]
-    let lowerBound = max(0, min(start, column.count))
-    let upperBound = max(lowerBound, min(end, column.count))
+    let lowerBound = min(Int(clamping: start), column.count)
+    let upperBound = max(lowerBound, min(Int(clamping: end), column.count))
     let slice = column[lowerBound ..< upperBound]
     let indices = Array(lowerBound ..< upperBound)
     return td_string(td_codable_json_string(td_column_slice_payload(slice, contiguous: true, indices: indices)))

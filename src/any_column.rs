@@ -246,8 +246,8 @@ impl AnyColumn {
     /// Wraps the `TabularData` `AnyColumn.slice` counterpart.
     #[must_use]
     pub fn slice(&self, range: std::ops::Range<usize>) -> ColumnSlice {
-        let start = range.start.min(self.values.len());
         let end = range.end.min(self.values.len());
+        let start = range.start.min(end);
         let values = self.values[start..end].to_vec();
         ColumnSlice::new(
             self.name.clone(),
