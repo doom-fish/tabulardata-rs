@@ -35,6 +35,16 @@ func td_column_index(
     return index
 }
 
+func td_require_available_name(_ name: String, in frame: DataFrame, replacing index: Int? = nil) throws {
+    let resolved = frame.indexOfColumn(name)
+    if let index, resolved == index {
+        return
+    }
+    guard resolved == nil, frame.columnNames(forAlias: name).isEmpty else {
+        throw td_invalid_argument("there is already a column or alias named '\(name)'")
+    }
+}
+
 func td_column_type(
     _ name: String,
     in frame: DataFrame,

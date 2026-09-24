@@ -7,9 +7,7 @@ func td_insert_column(_ payload: TDColumnPayload, at position: Int, into frame: 
             "column index \(position) is out of bounds for a data frame with \(frame.columns.count) columns"
         )
     }
-    guard frame.indexOfColumn(payload.name) == nil else {
-        throw td_invalid_argument("there is already a column named '\(payload.name)'")
-    }
+    try td_require_available_name(payload.name, in: frame)
     guard frame.columns.isEmpty || payload.values.count == frame.rows.count else {
         throw td_invalid_argument(
             "column '\(payload.name)' has \(payload.values.count) values but the data frame has \(frame.rows.count) rows"
@@ -96,9 +94,7 @@ public func td_dataframe_replace_column_json(
         let index = try td_column_index(String(cString: columnName), in: box.frame)
         let target = box.frame.columns[index].name
         let payload = try td_decode_json(columnJSON, as: TDColumnPayload.self)
-        guard payload.name == target || box.frame.indexOfColumn(payload.name) == nil else {
-            throw td_invalid_argument("there is already a column named '\(payload.name)'")
-        }
+        try td_require_available_name(payload.name, in: box.frame, replacing: index)
         guard payload.values.count == box.frame.rows.count else {
             throw td_invalid_argument(
                 "column '\(payload.name)' has \(payload.values.count) values but the data frame has \(box.frame.rows.count) rows"

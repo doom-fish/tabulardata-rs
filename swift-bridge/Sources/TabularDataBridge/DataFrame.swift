@@ -402,18 +402,16 @@ public func td_dataframe_rename_column(
     }
 
     let columnName = String(cString: columnNamePtr)
-    guard box.frame.indexOfColumn(columnName) != nil else {
-        td_write_error(errorOut, "there is no column named '\(columnName)'")
-        return TDR_INVALID_ARGUMENT
-    }
     let newName = String(cString: newNamePtr)
-    guard newName == columnName || box.frame.indexOfColumn(newName) == nil else {
-        td_write_error(errorOut, "there is already a column named '\(newName)'")
-        return TDR_INVALID_ARGUMENT
+    do {
+        let index = try td_column_index(columnName, in: box.frame)
+        try td_require_available_name(newName, in: box.frame, replacing: index)
+        box.frame.renameColumn(box.frame.columns[index].name, to: newName)
+        return TDR_OK
+    } catch {
+        td_write_error(errorOut, error.localizedDescription)
+        return td_status(for: error)
     }
-
-    box.frame.renameColumn(columnName, to: newName)
-    return TDR_OK
 }
 
 @_cdecl("td_dataframe_column_json")

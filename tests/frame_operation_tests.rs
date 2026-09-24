@@ -505,3 +505,42 @@ fn null_elements_inside_arrays_and_objects_stay_null() -> Result<(), TabularData
     }
     Ok(())
 }
+
+#[test]
+fn renames_go_through_the_real_name_and_alias_names_stay_reserved() -> Result<(), TabularDataError>
+{
+    let mut frame = every_type_frame()?;
+    frame.rename_column("weight", "mass")?;
+    assert_alias(&frame, "weight", "mass")?;
+    let mut expected = expected_schema();
+    expected[4].0 = "mass".into();
+    assert_eq!(schema(&frame)?, expected);
+
+    invalid(frame.rename_column("mass", "tag_list"));
+    invalid(frame.rename_column("small", "string"));
+    invalid(frame.rename_column("nope", "other"));
+    frame.rename_column("mass", "mass")?;
+    frame.rename_column("mass", "weight")?;
+    expected[4].0 = "weight".into();
+    assert_eq!(schema(&frame)?, expected);
+    assert!(frame.column_names_for_alias("weight")?.is_empty());
+
+    frame.replace_column(
+        "int32",
+        &Column::int32s("small", vec![Some(1), None, Some(3)]),
+    )?;
+    expected[3].0 = "small".into();
+    assert_eq!(schema(&frame)?, expected);
+
+    frame.add_alias("both", "int")?;
+    frame.add_alias("both", "string")?;
+    assert_eq!(frame.index_of_column("both")?, None);
+    let both = Column::ints("both", vec![Some(1), Some(2), Some(3)]);
+    invalid(frame.append_column(&both));
+    invalid(frame.insert_column(0, &both));
+    invalid(frame.replace_column("int", &both));
+    invalid(frame.rename_column("int", "both"));
+    assert_eq!(frame.column_names_for_alias("both")?, ["int", "string"]);
+    assert_eq!(schema(&frame)?, expected);
+    Ok(())
+}
