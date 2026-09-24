@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Unknown column names no longer reach `TabularData`'s `fatalError`, which aborted the process, in filters, sorts, selections, summaries, joins, groupings, group lookups, stratified splits and column encoding; they return `InvalidArgument`.
 - Appended, inserted and replaced rows, `from_rows` and `append_rows_of` no longer hit `TabularData`'s element-type traps: every value is converted to its column's element type or rejected, and every column is filled.
 - Group aggregates on the wrong element type, time grouping on a non-Date column, joins with mismatched key types, renames onto an existing name, encoding or decoding a column of the wrong type, aliasing an alias, split proportions of exactly 0 or 1, non-ASCII CSV delimiters or escape characters, and overflowing Int group sums no longer abort the process.
+- `json_bytes`, `json_string` and `write_json` no longer abort the process with an uncaught Objective-C exception on NaN or infinite Double and Float values, Data values, or dates, data and NaN inside array and object columns; they return `InvalidArgument`. A `summary()` of a one-row column or a quantile of an all-nil group produced such frames.
+- Ordered group aggregates no longer abort (or sort by the wrong column) when a grouping column already has the name of the result column (`count`, `sum(x)`, `mean(x)`, `quantile(x)`, `min(x)`, `max(x)`); they return `InvalidArgument`. Unordered aggregates still work and name the result `<name>.1`.
 
 ### Fixed
 
@@ -28,7 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `sorted_by` converts each key column once and rebuilds the frame with `append(row:)`; `insert_row` and `replace_row` insert one row instead of rebuilding the frame; `append_rows_of` uses `append(rowsOf:)` when the schemas match; `json_bytes` returns the bytes directly instead of a JSON array of integers; CSV and JSON input is passed as bytes instead of three string copies.
 - **Breaking:** validation failures report `TabularDataError::InvalidArgument`; several bridge errors that used to report `FrameworkError` now report `InvalidArgument`.
-- **Breaking:** raw FFI: `td_dataframe_from_csv_data` and `td_dataframe_from_json_data` take a byte pointer and length, `td_dataframe_json_data_json` is replaced by `td_dataframe_json_data`, and `td_dataframe_append_rows_of` is new.
+- **Breaking:** raw FFI: `td_dataframe_from_csv_data` and `td_dataframe_from_json_data` take a byte pointer and length, `td_dataframe_json_data_json` is replaced by `td_dataframe_json_data` (which returns a status and writes the buffer and its length through out-pointers), and `td_dataframe_append_rows_of` is new.
 - Requires `apple-cf` 0.11; `rust-version` is 1.82.
 
 ## [0.2.6] - 2026-05-18

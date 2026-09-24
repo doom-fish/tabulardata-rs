@@ -130,12 +130,39 @@ private func td_require_int_sum_in_range(frame: DataFrame, column: String) throw
     }
 }
 
+private func td_require_orderable_aggregate(
+    spec: TDGroupBySpecPayload,
+    aggregate: TDGroupAggregationPayload
+) throws {
+    guard aggregate.order != nil else {
+        return
+    }
+    let column = aggregate.column ?? ""
+    let name: String
+    switch aggregate.kind {
+    case "counts":
+        name = "count"
+    case "minimum":
+        name = "min(\(column))"
+    case "maximum":
+        name = "max(\(column))"
+    default:
+        name = "\(aggregate.kind)(\(column))"
+    }
+    guard !spec.columns.contains(name) else {
+        throw td_invalid_argument(
+            "grouping column '\(name)' has the name of the \(aggregate.kind) result column, so the result cannot be ordered; rename the column or pass no order"
+        )
+    }
+}
+
 private func td_group_aggregate(
     frame: DataFrame,
     spec: TDGroupBySpecPayload,
     aggregate: TDGroupAggregationPayload
 ) throws -> DataFrame {
     let order = aggregate.order.map { td_sort_order($0) }
+    try td_require_orderable_aggregate(spec: spec, aggregate: aggregate)
     if aggregate.kind == "counts" {
         return try td_grouping(frame: frame, spec: spec).counts(order: order)
     }

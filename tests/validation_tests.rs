@@ -297,3 +297,59 @@ fn edge_split_proportions_non_ascii_csv_options_and_int_sum_overflow_are_errors_
     fine.group_by(&["k"]).sums("v", GroupValueType::Int, None)?;
     Ok(())
 }
+
+fn quantiles_with_nan() -> Result<DataFrame, TabularDataError> {
+    let frame = DataFrame::from_columns(&[
+        Column::strings("k", ["a", "b", "c", "d"].map(|key| Some(key.to_owned())).to_vec()),
+        Column::doubles("v", vec![None, Some(2.0), None, Some(1.0)]),
+    ])?;
+    frame.group_by(&["k"]).quantiles("v", 0.5, None)
+}
+
+#[test]
+fn json_output_rejects_values_json_cannot_represent() -> Result<(), TabularDataError> {
+    let options = JSONWritingOptions::new();
+    let summary = DataFrame::from_columns(&[Column::doubles("v", vec![Some(1.0)])])?.summary()?;
+    let message = invalid(summary.json_bytes(&options));
+    assert!(message.contains("JSON cannot represent"), "{message}");
+    invalid(summary.json_string(&options));
+
+    let quantiles = quantiles_with_nan()?;
+    let message = invalid(quantiles.json_bytes(&options));
+    assert!(message.contains("'quantile(v)'"), "{message}");
+    let path = common::test_output_dir().join("validation-nan.json");
+    let _ = std::fs::remove_file(&path);
+    invalid(quantiles.write_json(&path, &options));
+    assert!(!path.exists());
+
+    let mut data = DataFrame::from_columns(&[Column::binary("d", vec![Some("AQ==".into()), None])])?;
+    let message = invalid(data.json_bytes(&options));
+    assert!(message.contains("Data"), "{message}");
+    data.replace_column("d", &Column::binary("d", vec![None, None]))?;
+    assert_eq!(data.json_string(&options)?, r#"[{"d":null},{"d":null}]"#);
+    Ok(())
+}
+
+#[test]
+fn ordered_aggregates_reject_result_names_taken_by_grouping_columns() -> Result<(), TabularDataError> {
+    let frame = DataFrame::from_columns(&[
+        Column::strings("count", ["a", "b", "a"].map(|key| Some(key.to_owned())).to_vec()),
+        Column::strings("sum(v)", ["x", "x", "y"].map(|key| Some(key.to_owned())).to_vec()),
+        Column::strings("min(w)", ["p", "q", "q"].map(|key| Some(key.to_owned())).to_vec()),
+        Column::ints("v", vec![Some(1), Some(2), Some(3)]),
+        Column::doubles("w", vec![Some(0.5), Some(1.5), Some(2.5)]),
+    ])?;
+    let message = invalid(frame.group_by(&["count"]).counts(Some(SortOrder::Ascending)));
+    assert!(message.contains("'count'"), "{message}");
+    assert_eq!(frame.group_by(&["count"]).counts(None)?.column_names()?, ["count", "count.1"]);
+    invalid(frame.group_by(&["sum(v)"]).sums("v", GroupValueType::Int, Some(SortOrder::Descending)));
+    invalid(frame.group_by(&["count", "sum(v)"]).sums("v", GroupValueType::Int, Some(SortOrder::Ascending)));
+    frame.group_by(&["sum(v)"]).sums("v", GroupValueType::Int, None)?;
+    invalid(frame.group_by(&["min(w)"]).minimums("w", GroupValueType::Double, Some(SortOrder::Ascending)));
+    frame.group_by(&["min(w)"]).maximums("w", GroupValueType::Double, Some(SortOrder::Ascending))?;
+
+    let ordered = frame.group_by(&["count"]).sums("v", GroupValueType::Int, Some(SortOrder::Descending))?;
+    let sums: Vec<AnyValue> = ordered.column("sum(v)")?.values();
+    assert_eq!(sums, [AnyValue::Int(4), AnyValue::Int(2)]);
+    Ok(())
+}

@@ -274,9 +274,10 @@ unsafe extern "C" {
     pub fn td_dataframe_json_data(
         frame: *mut c_void,
         options_json: *const c_char,
+        out_bytes: *mut *mut c_void,
         out_length: *mut usize,
         error_out: *mut *mut c_char,
-    ) -> *mut c_void;
+    ) -> i32;
     pub fn td_dataframe_append_rows_of(
         frame: *mut c_void,
         other: *mut c_void,

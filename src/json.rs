@@ -318,16 +318,21 @@ impl DataFrame {
     /// Wraps the `TabularData` `DataFrame.jsonBytes` counterpart.
     pub fn json_bytes(&self, options: &JSONWritingOptions) -> Result<Vec<u8>, TabularDataError> {
         let options = encode_json_write_options(options)?;
+        let mut buffer = core::ptr::null_mut();
         let mut length = 0;
         let mut error = core::ptr::null_mut();
-        let buffer = unsafe {
+        let status = unsafe {
             ffi::td_dataframe_json_data(
                 self.as_raw(),
                 options.as_ptr(),
+                &raw mut buffer,
                 &raw mut length,
                 &raw mut error,
             )
         };
+        if status != ffi::status::OK {
+            return Err(from_swift(status, error));
+        }
         if buffer.is_null() {
             return Err(from_swift(ffi::status::FRAMEWORK_ERROR, error));
         }

@@ -157,6 +157,34 @@ func td_typed_row(_ values: [String: TDAnyValue], for frame: DataFrame) throws -
     return row
 }
 
+func td_require_json_representable(_ frame: DataFrame) throws {
+    for column in frame.columns {
+        let type = column.wrappedElementType
+        let unrepresentable: String?
+        if type == String.self || type == Bool.self || type == Date.self || td_is_integer_type(type) {
+            unrepresentable = nil
+        } else if type == Double.self {
+            let finite = column.assumingType(Double.self).allSatisfy { $0?.isFinite ?? true }
+            unrepresentable = finite ? nil : "a NaN or infinite Double value"
+        } else if type == Float.self {
+            let finite = column.assumingType(Float.self).allSatisfy { $0?.isFinite ?? true }
+            unrepresentable = finite ? nil : "a NaN or infinite Float value"
+        } else if type == Data.self {
+            unrepresentable = column.missingCount == column.count ? nil : "Data values"
+        } else {
+            let valid = column.allSatisfy { value in
+                value.map { JSONSerialization.isValidJSONObject([$0]) } ?? true
+            }
+            unrepresentable = valid ? nil : "a \(td_type_label(type)) value containing a date, data, NaN or infinity"
+        }
+        if let unrepresentable {
+            throw td_invalid_argument(
+                "column '\(column.name)' holds \(unrepresentable), which JSON cannot represent"
+            )
+        }
+    }
+}
+
 func td_single_row_frame(_ values: [String: TDAnyValue], like frame: DataFrame) throws -> DataFrame {
     let row = try td_typed_row(values, for: frame)
     var single = td_empty_frame(like: frame)

@@ -188,6 +188,7 @@ public func td_dataframe_write_json(
         guard #available(macOS 13.0, *) else {
             throw td_invalid_argument("JSON writing requires macOS 13 or newer")
         }
+        try td_require_json_representable(frame)
         try frame.writeJSON(
             to: URL(fileURLWithPath: String(cString: path)),
             options: td_json_writing_options(payload)
@@ -203,13 +204,15 @@ public func td_dataframe_write_json(
 public func td_dataframe_json_data(
     _ framePtr: UnsafeMutableRawPointer?,
     _ optionsJSON: UnsafePointer<CChar>?,
+    _ outBytes: UnsafeMutablePointer<UnsafeMutableRawPointer?>,
     _ outLength: UnsafeMutablePointer<Int>,
     _ errorOut: UnsafeMutablePointer<UnsafeMutablePointer<CChar>?>?
-) -> UnsafeMutableRawPointer? {
+) -> Int32 {
+    outBytes.pointee = nil
     outLength.pointee = 0
     guard let frame = td_box(framePtr)?.frame else {
         td_write_error(errorOut, "data frame must not be null")
-        return nil
+        return TDR_INVALID_ARGUMENT
     }
 
     do {
@@ -217,15 +220,18 @@ public func td_dataframe_json_data(
         guard #available(macOS 13.0, *) else {
             throw td_invalid_argument("JSON writing requires macOS 13 or newer")
         }
+        try td_require_json_representable(frame)
         let data = try frame.jsonRepresentation(options: td_json_writing_options(payload))
         guard let buffer = malloc(max(data.count, 1)) else {
-            throw td_invalid_argument("failed to allocate \(data.count) bytes for the JSON data")
+            td_write_error(errorOut, "failed to allocate \(data.count) bytes for the JSON data")
+            return TDR_FRAMEWORK_ERROR
         }
         data.copyBytes(to: buffer.assumingMemoryBound(to: UInt8.self), count: data.count)
+        outBytes.pointee = buffer
         outLength.pointee = data.count
-        return buffer
+        return TDR_OK
     } catch {
         td_write_error(errorOut, error.localizedDescription)
-        return nil
+        return td_status(for: error)
     }
 }

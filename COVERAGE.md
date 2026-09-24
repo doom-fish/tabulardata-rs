@@ -2,7 +2,7 @@
 
 This document tracks the public Rust API shipped in `v0.3.0`, the matching Swift bridge area, and the validation artifacts that exercise it. It lists Rust entry points, not TabularData symbols; see the caveat at the top of COVERAGE_AUDIT.md for what the audit percentages measure.
 
-Every name-taking operation checks its column names in the Swift bridge, and every appended value is converted to the column's element type or rejected, before TabularData is called; `validation_tests` covers these error paths.
+Every name-taking operation checks its column names in the Swift bridge, every appended value is converted to the column's element type or rejected, JSON output checks that every value is representable, and ordered group aggregates check that no grouping column takes the result column's name, before TabularData is called; `validation_tests` covers these error paths.
 
 Status meanings:
 
